@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="0x01 前言时间长了，之前学的知识都忘光了。决定系统的总结一下各个模块的内容。 0x02 简介在通过php的函数引入文件时，由于对传入的文件名没有进行有效的验证，进而导致了漏洞的产生。 几乎所有脚本语言都会提供文件包含的功能，但是文件包含漏洞在php中居多，其他语言中出现的要少得多，甚至没有，但这并不意味着其他语言中没有。 常见的文件包含函数：  include()：执行到include时才包含">
+<meta property="og:type" content="article">
+<meta property="og:title" content="文件包含总结">
+<meta property="og:url" content="https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Quincy&#39;s blog">
+<meta property="og:description" content="0x01 前言时间长了，之前学的知识都忘光了。决定系统的总结一下各个模块的内容。 0x02 简介在通过php的函数引入文件时，由于对传入的文件名没有进行有效的验证，进而导致了漏洞的产生。 几乎所有脚本语言都会提供文件包含的功能，但是文件包含漏洞在php中居多，其他语言中出现的要少得多，甚至没有，但这并不意味着其他语言中没有。 常见的文件包含函数：  include()：执行到include时才包含">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-01-10T09:41:18.000Z">
+<meta property="article:modified_time" content="2020-03-17T03:15:54.754Z">
+<meta property="article:author" content="Quincy">
+<meta property="article:tag" content="File_Inclusion">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>文件包含总结</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&text=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&is_video=false&description=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=文件包含总结&body=Check out this article: https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&name=文件包含总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-简介"><span class="toc-number">2.</span> <span class="toc-text">0x02 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-常见的漏洞利用方法"><span class="toc-number">3.</span> <span class="toc-text">0x03 常见的漏洞利用方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-利用PHP伪协议"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 利用PHP伪协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-包含日志文件"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.包含日志文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-包含session文件"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.包含session文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-包含-tmp文件"><span class="toc-number">3.0.4.</span> <span class="toc-text">4.包含&#x2F;tmp文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        文件包含总结
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Quincy's blog</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-01-10T09:41:18.000Z" itemprop="datePublished">2018-01-10</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Web/">Web</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/File-Inclusion/" rel="tag">File_Inclusion</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>时间长了，之前学的知识都忘光了。决定系统的总结一下各个模块的内容。</p>
+<h2 id="0x02-简介"><a href="#0x02-简介" class="headerlink" title="0x02 简介"></a>0x02 简介</h2><p>在通过php的函数引入文件时，由于对传入的文件名没有进行有效的验证，进而导致了漏洞的产生。</p>
+<p>几乎所有脚本语言都会提供文件包含的功能，但是文件包含漏洞在php中居多，其他语言中出现的要少得多，甚至没有，但这并不意味着其他语言中没有。</p>
+<p>常见的文件包含函数：</p>
+<ul>
+<li>include()：执行到include时才包含文件，找不到被包含文件时只会产生警告，脚本将继续执行</li>
+<li>require()：只要程序一运行就包含文件，找不到被包含文件时会产生致命错误，并停止脚本执行</li>
+<li>Include_once()和require_once()：若文件中代码已被包含，则不会再次被包含</li>
+</ul>
+<p>由于远程文件包含需要<code>php.ini</code>中打开<code>allow_url_include = On</code>，而正常的服务器很少打开这个选项，所以，本地文件包含漏洞（Local File Inclusion）最为常见。</p>
+<h2 id="0x03-常见的漏洞利用方法"><a href="#0x03-常见的漏洞利用方法" class="headerlink" title="0x03 常见的漏洞利用方法"></a>0x03 常见的漏洞利用方法</h2><h4 id="1-利用PHP伪协议"><a href="#1-利用PHP伪协议" class="headerlink" title="1. 利用PHP伪协议"></a>1. 利用PHP伪协议</h4><p>PHP中支持的伪协议由下面这么多:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#96;file:&#x2F;&#x2F; — 访问本地文件系统http:&#x2F;&#x2F; — 访问 HTTP(s) 网址ftp:&#x2F;&#x2F; — 访问 FTP(s) URLsphp:&#x2F;&#x2F; — 访问各个输入&#x2F;输出流（I&#x2F;O streams）zlib:&#x2F;&#x2F; — 压缩流data:&#x2F;&#x2F; — 数据（RFC 2397）glob:&#x2F;&#x2F; — 查找匹配的文件路径模式phar:&#x2F;&#x2F; — PHP 归档ssh2:&#x2F;&#x2F; — Secure Shell 2rar:&#x2F;&#x2F; — RARogg:&#x2F;&#x2F; — 音频流expect:&#x2F;&#x2F; — 处理交互式的流&#96;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>php://</code>常用于文件包含漏洞中。下面对于常用的伪协议进行展开叙述：</p>
+<ul>
+<li><p>php://input</p>
+<p><code>php://input</code>代表可以访问请求的原始数据，简单来说POST请求的情况下，<code>php://input</code>可以获取到<strong>post</strong>的数据。</p>
+<p>比较特殊的一点，<code>enctype=”multipart/form-data”</code>的时候 <code>php://input</code> 是无效的。</p>
+</li>
+<li><p>php://filter</p>
+<p><code>php://filter</code> 是一种元封装器， 设计用于数据流打开时的筛选过滤应用。 这对于一体式（all-in-one）的文件函数非常有用，类似 <code>readfile()</code>、 <code>file()</code>和 <code>file_get_contents()</code>， 在数据流内容读取之前没有机会应用其他过滤器。</p>
+<p>事实上，在include函数的使用上，经常会造成任意文件读取漏洞，而<code>file_get_contents()</code>和<code>file_put_contents()</code>这样函数下，常常会构成getshell等更严重的漏洞。</p>
+<p>php://filter 目标使用以下的参数作为它路径的一部分。 复合过滤链能够在一个路径上指定。详细使用这些参数可以参考具体范例。</p>
+<p>文档里是这么写的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 名称	描述</span><br><span class="line">resource&#x3D;&lt;要过滤的数据流&gt;	   这个参数是必须的。它指定了你要筛选过滤的数据流。</span><br><span class="line">read&#x3D;&lt;读链的筛选列表&gt;	       该参数可选。可以设定一个或多个过滤器名称，以管道符（|）分隔。</span><br><span class="line">write&#x3D;&lt;写链的筛选列表&gt;	   该参数可选。可以设定一个或多个过滤器名称，以管道符（|）分隔。</span><br><span class="line">&lt;；两个链的筛选列表&gt;	       任何没有以 read&#x3D; 或 write&#x3D; 作前缀 的筛选器列表会视情况应用于读或写链。</span><br></pre></td></tr></table></figure>
+
+<p>我们举一个例子，这是平时我们用来任意文件读取的payload</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php:&#x2F;&#x2F;filter&#x2F;read&#x3D;convert.base64-encode&#x2F;resource&#x3D;upload.php</span><br></pre></td></tr></table></figure>
+
+<p>这里读的过滤器为<code>convert.base64-encode</code>，就和字面上的意思一样，把输入流<code>base64-encode</code>。<br><code>resource=upload.php</code>，代表读取<code>upload.php</code>的内容</p>
+<ul>
+<li><p>过滤器：</p>
+<ul>
+<li><p>转换过滤器：<code>convert.base64-encode</code>、<code>convert.base64-decode</code></p>
+</li>
+<li><p>字符串过滤器： <code>string.rot13</code>,<code>string.toupper</code>,<code>string.tolower</code>,<code>string.strip_tags</code></p>
+<p>string.strip_tags（自 PHP 5.0.0 起）使用此过滤器等同于用 strip_tags()函数处理所有的流数据。可以用两种格式接收参数：一种是和 strip_tags()函数第二个参数相似的一个包含有标记列表的字符串，一种是一个包含有标记名的数组。</p>
+<p>strip_tags()返回给定的字符串 str 去除空字符、HTML 和 PHP 标记后的结果。</p>
+</li>
+<li><p>压缩过滤器： <code>zlib.deflate</code>和 <code>zlib.inflate</code>是主要的两个</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$params = <span class="keyword">array</span>(<span class="string">'level'</span> =&gt; <span class="number">6</span>, <span class="string">'window'</span> =&gt; <span class="number">15</span>, <span class="string">'memory'</span> =&gt; <span class="number">9</span>);</span><br><span class="line">$original_text = <span class="string">"This is a test.\nThis is only a test.\nThis is not an important string.\n"</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"The original text is "</span> . strlen($original_text) . <span class="string">" characters long.\n"</span>;</span><br><span class="line">$fp = fopen(<span class="string">'test.deflated'</span>, <span class="string">'w'</span>);</span><br><span class="line">stream_filter_append($fp, <span class="string">'zlib.deflate'</span>, STREAM_FILTER_WRITE, $params);</span><br><span class="line">fwrite($fp, $original_text);</span><br><span class="line">fclose($fp);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"The compressed file is "</span> . filesize(<span class="string">'test.deflated'</span>) . <span class="string">" bytes long.\n"</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"The original text was:\n"</span>;</span><br><span class="line"><span class="comment">/* Use readfile and zlib.inflate to decompress on the fly */</span></span><br><span class="line">readfile(<span class="string">'php://filter/zlib.inflate/resource=test.deflated'</span>);</span><br><span class="line"><span class="comment">/* Generates output:</span></span><br><span class="line"><span class="comment">The original text is 70 characters long.</span></span><br><span class="line"><span class="comment">The compressed file is 56 bytes long.</span></span><br><span class="line"><span class="comment">The original text was:</span></span><br><span class="line"><span class="comment">This is a test.</span></span><br><span class="line"><span class="comment">This is only a test.</span></span><br><span class="line"><span class="comment">This is not an important string.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>data://</p>
+<p><code>data://text/plain;base64,PD9waHAgZXZhbCgkX0dFVFsic2hlbGwiXSk7Pz4=</code></p>
+</li>
+<li><p>zip:// | phar://</p>
+<p>如果漏洞代码更为严格，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="keyword">include</span>($_GET[<span class="string">'file'</span>] . <span class="string">'.php'</span>);</span><br></pre></td></tr></table></figure>
+
+<p>也就是只包含后缀名为<code>php</code>的文件，那用我们刚才的方法直接包含图片文件就不行了，因为你传入<code>file=1.jpg</code>，到代码里就变为包含<code>1.jpg.php</code>，显然不存在这个文件。这种情况下，我们仍然可以利用<code>zip://</code>和<code>phar://</code>两种伪协议。</p>
+<p>先写一个正常的php文件：<code>1.php</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    phpinfo();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后压缩进一个压缩包里面，然后把这个压缩包后缀名改为.jpg，在可以上传图片文件的地方上传，然后用伪协议包含：</p>
+<p><code>file=zip://1.jpg%231</code>或<code>file=phar://1.jpg/1</code>这样后面的<code>1</code>后<code>.php</code>拼接，就能执行里面的PHP文件了。</p>
+</li>
+</ul>
+<h4 id="2-包含日志文件"><a href="#2-包含日志文件" class="headerlink" title="2.包含日志文件"></a>2.包含日志文件</h4><ul>
+<li><p>概述</p>
+<p>当我们没有上传点，并且也没有url_allow_include功能时，我们就可以考虑包含服务器的日志文件。 </p>
+<p>利用思路也比较简单，当我们访问网站时，服务器的日志中都会记录我们的行为，当我们访问链接中包含PHP一句话木马时，也会被记录到日志中。<br>这时候我们如果知道服务器的日志位置，我们可以去包含这个文件从而拿到shell。<br>其实整个“包含日志文件漏洞利用”最关键的就是找日志存放的“物理路径”，只要找到日志的物理存放路径，一切就可以按部就班的完成利用了。 </p>
+</li>
+<li><p>利用条件</p>
+<p>1.日志的物理存放路径<br>2.存在文件包含漏洞<br>3.curl命令行url请求工具 或者 burpsuit代理；（避免url转码的存在）</p>
+</li>
+<li><p>常见的日志默认地址</p>
+<p><strong>(1)apache+Linux日志默认路径</strong><br><code>/etc/httpd/logs/access_log</code> 或者 <code>/var/log/httpd/access_log</code></p>
+<p><strong>(2)apache+Mac日志默认路径</strong><br><code>/var/log/apache2/access_log</code></p>
+<p><strong>(3) apache+win2003日志默认路径</strong><br><code>D:\xampp\apache\logs\access.log</code><br><code>D:\xampp\apache\logs\error.log</code></p>
+<p><strong>(4) IIS6.0+win2003默认日志文件</strong><br><code>C:\WINDOWS\system32\Logfiles</code></p>
+<p><strong>(4) IIS7.0+win2003 默认日志文件</strong><br><code>%SystemDrive%\inetpub\logs\LogFiles</code></p>
+<p><strong>(5) nginx 日志文件</strong><br>日志文件在用户安装目录logs目录下<br>例如安装目录<code>/usr/local/nginx</code><br>那我的日志目录就是在<code>/usr/local/nginx/logs</code>里</p>
+</li>
+<li><p>2.web中间件默认配置</p>
+<p><strong>(1) apache+linux 默认配置文件</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;etc&#x2F;httpd&#x2F;conf&#x2F;httpd.conf&#96; 或者 &#96;index.php?page&#x3D;&#x2F;etc&#x2F;init.d&#x2F;httpd</span><br></pre></td></tr></table></figure>
+
+<p><strong>(2) IIS6.0+win2003 配置文件</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:&#x2F;Windows&#x2F;system32&#x2F;inetsrv&#x2F;metabase.xml</span><br></pre></td></tr></table></figure>
+
+<p><strong>(3) IIS7.0+WIN 配置文件</strong><br><code>C:\Windows\System32\inetsrv\config\applicationHost.config</code></p>
+</li>
+<li><p>3.网站配置文件</p>
+<p><strong>dedecms</strong> 数据库配置文件<code>data/common.inc.php</code>,</p>
+<p><strong>discuz</strong> 全局配置文件<code>config/config_global.php</code>,</p>
+<p><strong>phpcms</strong> 配置文件<code>caches/configs/database.php</code></p>
+<p><strong>phpwind</strong> 配置文件<code>conf/database.php</code></p>
+<p><strong>wordpress</strong> 配置文件<code>wp-config.php</code></p>
+</li>
+</ul>
+<h4 id="3-包含session文件"><a href="#3-包含session文件" class="headerlink" title="3.包含session文件"></a>3.包含session文件</h4><p><code>session.upload_progress.enabled</code>这个参数在php.ini 默认开启，需要手动置为Off</p>
+<p>如果不是Off，就会在上传的过程中生成上传进度文件，它的存储路径可以在phpinfo获取到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;var&#x2F;lib&#x2F;php5&#x2F;sess_&#123;your_php_session_id&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们发现，如果我们的请求头中带着 <code>session.upload_progress.name</code> 的值，不管服务端PHP有没有开session，<br>只要我们在请求头中填上 PHPSESSID(符合格式，随便你怎么写),服务器就会根据我们这个 PHPSESSID 在session 文件的默认存放位置生成一个 session 文件。我们在文件中写入恶意代码，然后包含session文件就可以执行恶意代码了。</p>
+<h4 id="4-包含-tmp文件"><a href="#4-包含-tmp文件" class="headerlink" title="4.包含/tmp文件"></a>4.包含/tmp文件</h4><p>向服务器上<strong>任意php</strong>文件以form-data方式提交请求上传数据时，会生成临时文件,通过phpinfo来获取临时文件的路径以及名称,然后临时文件在极短时间被删除的时候,需要竞争时间包含临时文件拿到webshell。</p>
+<h2 id="0x04-参考"><a href="#0x04-参考" class="headerlink" title="0x04 参考"></a>0x04 参考</h2><p>1.<a href="https://www.cnblogs.com/iamstudy/articles/include_file.html" target="_blank" rel="noopener">文件包含漏洞小结</a></p>
+<p>2.<a href="https://xz.aliyun.com/t/2148#toc-4" target="_blank" rel="noopener">N1CTF Easy&amp;&amp;Hard Php Writeup</a></p>
+<p>3.<a href="https://github.com/hxer/vulnapp/tree/master/lfi_phpinfo" target="_blank" rel="noopener">LFI with phpinfo</a></p>
+<blockquote>
+</blockquote>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-简介"><span class="toc-number">2.</span> <span class="toc-text">0x02 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-常见的漏洞利用方法"><span class="toc-number">3.</span> <span class="toc-text">0x03 常见的漏洞利用方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-利用PHP伪协议"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 利用PHP伪协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-包含日志文件"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.包含日志文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-包含session文件"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.包含session文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-包含-tmp文件"><span class="toc-number">3.0.4.</span> <span class="toc-text">4.包含&#x2F;tmp文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&text=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&is_video=false&description=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=文件包含总结&body=Check out this article: https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/&name=文件包含总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 Quincy
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'quincyblog-top';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

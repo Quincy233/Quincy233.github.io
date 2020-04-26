@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="0x01 前言在做ISCC2018 的时候遇到了一题利用的哈希长度扩展攻击的web题目，于是学习了解了一下相关知识，并在此记录一下。 题目源码： 1234567891011121314151617181920&lt;?phpinclude &quot;secret.php&quot;;@$username&#x3D;(string)$_POST[&#39;username&#39;];function enc($text)&amp;#123;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="哈希长度扩展攻击的学习">
+<meta property="og:url" content="https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Quincy&#39;s blog">
+<meta property="og:description" content="0x01 前言在做ISCC2018 的时候遇到了一题利用的哈希长度扩展攻击的web题目，于是学习了解了一下相关知识，并在此记录一下。 题目源码： 1234567891011121314151617181920&lt;?phpinclude &quot;secret.php&quot;;@$username&#x3D;(string)$_POST[&#39;username&#39;];function enc($text)&amp;#123;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://ony7wielg.bkt.clouddn.com/20170511149444648852381.png">
+<meta property="og:image" content="http://ony7wielg.bkt.clouddn.com/20170509149430208341796.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/05/08/Cd9v5j.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/05/08/CdCp2q.png">
+<meta property="article:published_time" content="2018-05-08T03:44:35.000Z">
+<meta property="article:modified_time" content="2020-03-17T03:15:54.753Z">
+<meta property="article:author" content="Quincy">
+<meta property="article:tag" content="web security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://ony7wielg.bkt.clouddn.com/20170511149444648852381.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>哈希长度扩展攻击的学习</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2018/05/31/suctf-writeup/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&text=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&is_video=false&description=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=哈希长度扩展攻击的学习&body=Check out this article: https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&name=哈希长度扩展攻击的学习&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-攻击场景"><span class="toc-number">2.</span> <span class="toc-text">0x02 攻击场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Message-Authentication-Codes"><span class="toc-number">3.</span> <span class="toc-text">0x03 Message Authentication Codes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-Merkle–Damgard-MD-结构"><span class="toc-number">4.</span> <span class="toc-text">0x04 Merkle–Damgård(MD)结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-How-Hash-Algorithms-Work"><span class="toc-number">5.</span> <span class="toc-text">0x05 How Hash Algorithms Work</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x06-How-To-Run-The-Attack"><span class="toc-number">6.</span> <span class="toc-text">0x06  How To Run The Attack</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x07-利器Hashpump"><span class="toc-number">7.</span> <span class="toc-text">0x07 利器Hashpump</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x08-解题过程"><span class="toc-number">8.</span> <span class="toc-text">0x08 解题过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x09-参考"><span class="toc-number">9.</span> <span class="toc-text">0x09 参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        哈希长度扩展攻击的学习
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Quincy's blog</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-05-08T03:44:35.000Z" itemprop="datePublished">2018-05-08</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Web/">Web</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>在做<strong>ISCC2018</strong> 的时候遇到了一题利用的哈希长度扩展攻击的web题目，于是学习了解了一下相关知识，并在此记录一下。</p>
+<p>题目源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">include</span> <span class="string">"secret.php"</span>;</span><br><span class="line">@$username=(string)$_POST[<span class="string">'username'</span>];</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">enc</span><span class="params">($text)</span></span>&#123;</span><br><span class="line">    <span class="keyword">global</span> $key;</span><br><span class="line">    <span class="keyword">return</span> md5($key.$text);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span>(enc($username) === $_COOKIE[<span class="string">'verify'</span>])&#123;</span><br><span class="line">    <span class="keyword">if</span>(is_numeric(strpos($username, <span class="string">"admin"</span>)))&#123;</span><br><span class="line">        <span class="keyword">die</span>($flag);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">die</span>(<span class="string">"you are not admin"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span>&#123;</span><br><span class="line">    setcookie(<span class="string">"verify"</span>, enc(<span class="string">"guest"</span>), time()+<span class="number">60</span>*<span class="number">60</span>*<span class="number">24</span>*<span class="number">7</span>);</span><br><span class="line">    setcookie(<span class="string">"len"</span>, strlen($key), time()+<span class="number">60</span>*<span class="number">60</span>*<span class="number">24</span>*<span class="number">7</span>);  </span><br><span class="line">&#125;</span><br><span class="line">show_source(<span class="keyword">__FILE__</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02-攻击场景"><a href="#0x02-攻击场景" class="headerlink" title="0x02 攻击场景"></a>0x02 攻击场景</h2><p>哈希长度扩展攻击(Hash Length Extension Attacks)用于攻击MAC(Message Authentication Codes) 计算方式为 <code>$MAC = enc($secret, $message)</code> 的情况. 其中 <code>enc()</code> 为hash函数, <code>$secret</code>为保存在服务器上的秘密信息. 当这里hash函数为 <code>MD4</code> <code>MD5</code> <code>SHA-0</code> <code>SHA-1</code> <code>SHA-256</code> <code>SHA-512</code> 等基于MD结构的算法时. 我们就可以在知道 <code>$secret</code> 长度和一组 <code>$message</code> 、<code>$MAC</code> 的情况下构造出 <code>$message + padding + $yourmessage</code> 的hash从而绕过服务器上的某些验证.</p>
+<h2 id="0x03-Message-Authentication-Codes"><a href="#0x03-Message-Authentication-Codes" class="headerlink" title="0x03 Message Authentication Codes"></a>0x03 Message Authentication Codes</h2><p>在密码学中, 消息认证码(MAC)用于保证消息的完整性(integrity)和真实性(authenticity).</p>
+<p><a href="http://ony7wielg.bkt.clouddn.com/20170511149444648852381.png" target="_blank" rel="noopener"><img src="http://ony7wielg.bkt.clouddn.com/20170511149444648852381.png" alt="img"></a></p>
+<p>(图片来自维基百科)</p>
+<p>上图展示了通过MAC认证消息的过程, 可以看得出MAC是通过MAC算法, 密钥和消息三者生成的, 但通常情况下常用MD5, SHA等hash算法来作MAC算法, 也就是文章开头的<code>$encode()</code>.  Web中常见的情况是服务器充当上图中的两者, 服务器对认证过的请求计算一次MAC传递给用户, 所以在服务器端只要验证用户提交的MAC与计算出的请求的MAC是否相等, 就能判别用户的请求是否合法.  </p>
+<h2 id="0x04-Merkle–Damgard-MD-结构"><a href="#0x04-Merkle–Damgard-MD-结构" class="headerlink" title="0x04 Merkle–Damgård(MD)结构"></a>0x04 Merkle–Damgård(MD)结构</h2><p>在进行哈希长度拓展攻击之前, 我们先要了解一下什么是MD结构.</p>
+<p><a href="http://ony7wielg.bkt.clouddn.com/20170509149430208341796.png" target="_blank" rel="noopener"><img src="http://ony7wielg.bkt.clouddn.com/20170509149430208341796.png" alt="img"></a></p>
+<p>(图片来自维基百科)</p>
+<p>如上图, MD算法简单来说有以下几步:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 首先把要加密的消息按照固定的长度分成若干个块, 对最后一个块进行长度补足</span><br><span class="line">2. 将第一个消息块和一个初始化向量IV(与具体的算法与实现有关)做一个复杂的运算f得出一个结果</span><br><span class="line">3. 将上面的结果作为下一次运算f的输入向量, 并与下一个消息块进行复杂运算f, 以此类推</span><br><span class="line">4. 将最后一个消息块运算后的结果进行一些处理(常是压缩函数)得出最后的结果.</span><br></pre></td></tr></table></figure>
+
+<p>明白的MD算法的流程, 我们就会想到这样一个问题: <strong>如果我们可以获得一段消息最终的hash, 那我们就可以在原消息后面附加任意的数据并计算出同样合法的hash.</strong>  因为每一次运算只依赖上一次的结果, 与之前的运算没有关联.</p>
+<h2 id="0x05-How-Hash-Algorithms-Work"><a href="#0x05-How-Hash-Algorithms-Work" class="headerlink" title="0x05 How Hash Algorithms Work"></a>0x05 How Hash Algorithms Work</h2><p>哈希函数以区块为单位操作数据。比如说，<code>MD5, SHA1, SHA256</code>的区块长度是512 bits 。大多数message的长度不会刚好可以被哈希函数的区块长度整除。这样一来，message就必须被填充(padding)至区块长度的整数倍。</p>
+<ul>
+<li><p>MD5的填充方式：</p>
+<p>假设我有一段待加密的明文”data”，采取的加密方式是<code>md5($salt . “data”)</code>，salt为”secret”。因此此时的salt和data在内存中的存储状态应为：</p>
+<blockquote>
+<p>0000 73 65 63 72 65 74 64 61 74 61 secretdata</p>
+</blockquote>
+<p>MD5算法会判断待加密的数据长度mod512是否为448bit，如果不为448bit则需要填充数据。在上面的例子中，secretdata显然不足56byte(448bit)，因此需要填充至56byte，<strong>填充规则是在数据后面加上0x80，然后开始不断填充0x00</strong>，填充后的数据如下：</p>
+<blockquote>
+<p>0000 73 65 63 72 65 74 64 61 74 61 80 00 00 00 00 00 secretdata……</p>
+<p>0010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0030 00 00 00 00 00 00 00 00                         ……..</p>
+</blockquote>
+<p>最后一步，MD5会用源数据的长度来补满第57到第64byte，<strong>“secretdata”长度为10bytes，因此换算成bit就是80bits，用16进制表示为0x50。因此在第57byte填充0x50</strong>，其余再继续填充0x00至第64byte，填充结果如下：</p>
+<blockquote>
+<p>0000 73 65 63 72 65 74 64 61 74 61 80 00 00 00 00 00 secretdata……</p>
+<p>0010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0030 00 00 00 00 00 00 00 00 50 00 00 00 00 00 00 00 ……..P…….</p>
+</blockquote>
+<p>至此MD5的填充就结束了。</p>
+</li>
+</ul>
+<h2 id="0x06-How-To-Run-The-Attack"><a href="#0x06-How-To-Run-The-Attack" class="headerlink" title="0x06  How To Run The Attack"></a>0x06  How To Run The Attack</h2><p>Hash长度扩展攻击可以让攻击者无须知道salt的值，只需知道一组明文和一组密文则可以构造出在原有明文基础上添加任意信息的新密文。这样解释起来非常拗口，Wiki上是这样解释的：</p>
+<p>攻击者可以巧妙的利用此类散列算法的性质，即如果明文长度大于64byte，那么散列算法会先计算第一个64byte，然后再计算第二个64byte，以此类推（Merkle-Damgård构造）。我们不必完全弄清楚MD5或者SHA的原理，知道这一点，我们就可以利用Hash长度扩展攻击了。<br>我们在刚才填充好的数据后面再强行加上我们要添加的新数据append，结果如下：</p>
+<blockquote>
+<p>0000 73 65 63 72 65 74 64 61 74 61 80 00 00 00 00 00 secretdata……</p>
+<p>0010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0030 00 00 00 00 00 00 00 00 50 00 00 00 00 00 00 00 ……..P…….</p>
+<p>0040 61 70 70 65 6e 64                             append</p>
+</blockquote>
+<p>这样的话MD5在加密的时候会先计算前64bytes的散列，然后再计算append的散列值。<br>这个时候我们再把salt去掉，得：</p>
+<blockquote>
+<p>0000 64 61 74 61 80 00 00 00 00 00 00 00 00 00 00 00 data…………</p>
+<p>0010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 …………….</p>
+<p>0030 00 00 50 00 00 00 00 00 00 00 61 70 70 65 6e 64 ..P…….append</p>
+</blockquote>
+<p>如果我们将这段明文提交上去，系统加salt的以后，效果就和上一段前面有”secret”的明文一模一样了。</p>
+<p><strong>并且我们可以保证在已知hash(data)===md5(salt+data)的情况下，hash(data..这里省略很多.号..P……..append)=md5(salt+data..这里省略很多.号..P……..append)</strong></p>
+<p>需要注意的一点是，我们填充0x00的数量是根据salt的长度得出的，因此在实施此类攻击时必须要知道salt的长度。</p>
+<h2 id="0x07-利器Hashpump"><a href="#0x07-利器Hashpump" class="headerlink" title="0x07 利器Hashpump"></a>0x07 利器Hashpump</h2><p>hashpump是一个C++编写的用于哈希长度拓展攻击的工具, 支持CRC32, MD5, SHA1等等多种算法, 并且使用起来也非常方便.</p>
+<p>其用法如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> Hashpump -h</span></span><br><span class="line">HashPump [-h help] [-t test] [-s signature] [-d data] [-a additional] [-k keylength]</span><br><span class="line">     HashPump generates strings to exploit signatures vulnerable to the Hash Length Extension Attack.</span><br><span class="line">     -h --help          Display this message.</span><br><span class="line">     -t --test          Run tests to verify each algorithm is operating properly.</span><br><span class="line">     -s --signature     The signature from known message.</span><br><span class="line">     -d --data          The data from the known message.</span><br><span class="line">     -a --additional    The information you would like to add to the known message.</span><br><span class="line">     -k --keylength     The length in bytes of the key being used to sign the original message with.</span><br><span class="line">     Version 1.2.0 with CRC32, MD5, SHA1, SHA256 and SHA512 support.</span><br><span class="line">     &lt;Developed by bwall(@botnet_hunter)&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x08-解题过程"><a href="#0x08-解题过程" class="headerlink" title="0x08 解题过程"></a>0x08 解题过程</h2><ul>
+<li><p>我们首先打开题目页面获取cookie：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">len	46</span><br><span class="line">verify	78cfc57d983b4a17e55828c001a3e781</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<ul>
+<li><p>然后利用Hashpump获取<code>verify</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> hashpump -s <span class="string">'78cfc57d983b4a17e55828c001a3e781'</span> -d <span class="string">'guest'</span> -a <span class="string">'admin'</span> -k 46</span></span><br><span class="line"></span><br><span class="line">5f585093a7fe86971766c3d25c43d0eb</span><br><span class="line"></span><br><span class="line">guest\x80\x00\x00\x00\x00\x98\x01\x00\x00\x00\x00\x00\x00admin</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>现在我们再拿这对扩展消息和hash去验证,获取flag</p>
+<p><img src="https://s1.ax1x.com/2018/05/08/Cd9v5j.png" alt=""></p>
+<p><img src="https://s1.ax1x.com/2018/05/08/CdCp2q.png" alt=""></p>
+</li>
+</ul>
+<h2 id="0x09-参考"><a href="#0x09-参考" class="headerlink" title="0x09 参考"></a>0x09 参考</h2><p>[+] <a href="https://en.wikipedia.org/wiki/Merkle%E2%80%93Damg%C3%A5rd_construction" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Merkle%E2%80%93Damg%C3%A5rd_construction</a></p>
+<p>[+] <a href="http://netifera.com/research/flickr_api_signature_forgery.pdf" target="_blank" rel="noopener">http://netifera.com/research/flickr_api_signature_forgery.pdf</a></p>
+<p>[+] <a href="http://www.mottoin.com/85772.html" target="_blank" rel="noopener">http://www.mottoin.com/85772.html</a></p>
+<p>[+] <a href="http://www.freebuf.com/articles/web/31756.html" target="_blank" rel="noopener">http://www.freebuf.com/articles/web/31756.html</a></p>
+<p>[+] <a href="http://klaus.link/2017/Hash_Length_Extension_Attacks_in_Web/" target="_blank" rel="noopener">http://klaus.link/2017/Hash_Length_Extension_Attacks_in_Web/</a></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-攻击场景"><span class="toc-number">2.</span> <span class="toc-text">0x02 攻击场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Message-Authentication-Codes"><span class="toc-number">3.</span> <span class="toc-text">0x03 Message Authentication Codes</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-Merkle–Damgard-MD-结构"><span class="toc-number">4.</span> <span class="toc-text">0x04 Merkle–Damgård(MD)结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x05-How-Hash-Algorithms-Work"><span class="toc-number">5.</span> <span class="toc-text">0x05 How Hash Algorithms Work</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x06-How-To-Run-The-Attack"><span class="toc-number">6.</span> <span class="toc-text">0x06  How To Run The Attack</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x07-利器Hashpump"><span class="toc-number">7.</span> <span class="toc-text">0x07 利器Hashpump</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x08-解题过程"><span class="toc-number">8.</span> <span class="toc-text">0x08 解题过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x09-参考"><span class="toc-number">9.</span> <span class="toc-text">0x09 参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&text=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&is_video=false&description=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=哈希长度扩展攻击的学习&body=Check out this article: https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/&name=哈希长度扩展攻击的学习&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 Quincy
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'quincyblog-top';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

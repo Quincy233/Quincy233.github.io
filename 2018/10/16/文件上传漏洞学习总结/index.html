@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="0x00 前言文件上传漏洞是渗透测试中一个关键的突破口，通过文件上传漏洞我们可以上传webshell等一系列操作。下面是有关文件上传漏洞的学习总结。 0x01 文件上传检测流程通常一个文件以HTTP协议进行上传时，将以POST请求发送至Web服务器，Web服务器接收到请求并同意后，用户与Web服务器将建立连接，并传输数据。一般文件上传过程中将会经过如下几个检测步骤：  客户端 javascript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="文件上传漏洞学习总结">
+<meta property="og:url" content="https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Quincy&#39;s blog">
+<meta property="og:description" content="0x00 前言文件上传漏洞是渗透测试中一个关键的突破口，通过文件上传漏洞我们可以上传webshell等一系列操作。下面是有关文件上传漏洞的学习总结。 0x01 文件上传检测流程通常一个文件以HTTP协议进行上传时，将以POST请求发送至Web服务器，Web服务器接收到请求并同意后，用户与Web服务器将建立连接，并传输数据。一般文件上传过程中将会经过如下几个检测步骤：  客户端 javascript">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-10-16T13:18:03.000Z">
+<meta property="article:modified_time" content="2020-03-17T03:15:54.753Z">
+<meta property="article:author" content="Quincy">
+<meta property="article:tag" content="web security">
+<meta name="twitter:card" content="summary">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>文件上传漏洞学习总结</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2018/10/27/ECShop%202.x:3.x%20SQL%E6%B3%A8%E5%85%A5:%E4%BB%BB%E6%84%8F%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E7%9A%84%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2018/05/31/suctf-writeup/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&text=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&is_video=false&description=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=文件上传漏洞学习总结&body=Check out this article: https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&name=文件上传漏洞学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x00-前言"><span class="toc-number">1.</span> <span class="toc-text">0x00 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-文件上传检测流程"><span class="toc-number">2.</span> <span class="toc-text">0x01 文件上传检测流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-客户端-javascript-检测绕过"><span class="toc-number">2.0.1.</span> <span class="toc-text">1. 客户端 javascript 检测绕过</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-服务端MIME检测绕过"><span class="toc-number">2.0.2.</span> <span class="toc-text">2. 服务端MIME检测绕过</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-服务端文件扩展名检测"><span class="toc-number">2.0.3.</span> <span class="toc-text">3. 服务端文件扩展名检测</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-服务端检测绕过（文件内容检测）"><span class="toc-number">2.0.4.</span> <span class="toc-text">4. 服务端检测绕过（文件内容检测）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-中间件解析漏洞"><span class="toc-number">3.</span> <span class="toc-text">0x02 中间件解析漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-利用系统特性"><span class="toc-number">4.</span> <span class="toc-text">0x03 利用系统特性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-NTFS数据流与文件上传"><span class="toc-number">4.0.1.</span> <span class="toc-text">1. NTFS数据流与文件上传</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-windows通配符的妙用"><span class="toc-number">4.0.2.</span> <span class="toc-text">2. windows通配符的妙用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考"><span class="toc-number">5.</span> <span class="toc-text">0x04 参考</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        文件上传漏洞学习总结
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Quincy's blog</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-10-16T13:18:03.000Z" itemprop="datePublished">2018-10-16</time>
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h2><p>文件上传漏洞是渗透测试中一个关键的突破口，通过文件上传漏洞我们可以上传<code>webshell</code>等一系列操作。下面是有关文件上传漏洞的学习总结。</p>
+<h2 id="0x01-文件上传检测流程"><a href="#0x01-文件上传检测流程" class="headerlink" title="0x01 文件上传检测流程"></a>0x01 文件上传检测流程</h2><p>通常一个文件以HTTP协议进行上传时，将以POST请求发送至Web服务器，Web服务器接收到请求并同意后，用户与Web服务器将建立连接，并传输数据。一般文件上传过程中将会经过如下几个检测步骤：</p>
+<ul>
+<li>客户端 javascript 检测 (通常为检测文件扩展名)</li>
+<li>服务端 MIME 类型检测 (检测 Content-Type 内容)</li>
+<li>服务端目录路径检测 (检测跟 path 参数相关的内容)</li>
+<li>服务端文件扩展名检测 (检测跟文件 extension 相关的内容)</li>
+<li>服务端文件内容检测 (检测内容是否合法或含有恶意代码)</li>
+</ul>
+<h4 id="1-客户端-javascript-检测绕过"><a href="#1-客户端-javascript-检测绕过" class="headerlink" title="1. 客户端 javascript 检测绕过"></a>1. 客户端 javascript 检测绕过</h4><p>一般的文件上传界面都会有一段<code>javascript</code>代码来检测文件后缀名是否合法。</p>
+<p>例如：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type=<span class="string">"text/javascript"</span>&gt;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">check</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> filename=<span class="built_in">document</span>.getElementById(<span class="string">"file"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> str=filename.value.split(<span class="string">"."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> ext=str[str.length<span class="number">-1</span>];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(ext==<span class="string">'jpg'</span>||ext==<span class="string">'png'</span>||ext==<span class="string">'jpeg'</span>||ext==<span class="string">'gif'</span>)&#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line"></span><br><span class="line">            alert(<span class="string">"这不是图片！"</span>)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&lt;<span class="regexp">/script&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>绕过方法：</p>
+<ul>
+<li>利用浏览器的调试器把该<code>js</code>代码禁用或者删除</li>
+<li>将文件扩展名改成合法的扩展名，利用burp抓包进行更改</li>
+</ul>
+<h4 id="2-服务端MIME检测绕过"><a href="#2-服务端MIME检测绕过" class="headerlink" title="2. 服务端MIME检测绕过"></a>2. 服务端MIME检测绕过</h4><p>HTTP协议规定了上传资源的时候在header中加入一项文件的<code>MIMETYPE</code>，来识别文件类型，这个动作是由浏览器完成的。</p>
+<p>例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span>($_FILES[<span class="string">'userfile'</span>][<span class="string">'type'</span>] != <span class="string">"image/gif"</span>) &#123; <span class="comment">//检测Content-type</span></span><br><span class="line"><span class="keyword">echo</span> <span class="string">"Sorry, we only allow uploading GIF images"</span>;</span><br><span class="line"><span class="keyword">exit</span>;</span><br><span class="line">&#125;</span><br><span class="line">$uploaddir = <span class="string">'uploads/'</span>;</span><br><span class="line">$uploadfile = $uploaddir . basename($_FILES[<span class="string">'userfile'</span>][<span class="string">'name'</span>]);</span><br><span class="line"><span class="keyword">if</span> (move_uploaded_file($_FILES[<span class="string">'userfile'</span>][<span class="string">'tmp_name'</span>], $uploadfile)) &#123; <span class="keyword">echo</span> <span class="string">"File is valid, and was successfully uploaded.\n"</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"File uploading failed.\n"</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>绕过方法：</p>
+<p>利用<code>burpsuite</code>修改header中的<code>Content-Type</code>字段，例如面对这样的代码时，如果我们需要上传PHP文件，我们可以将<code>header</code>中的<code>Content-Type: application/php</code>改为<code>Content-Type: image/gif</code></p>
+<p>常见的MIMETYPE表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">text&#x2F;plain（纯文本）</span><br><span class="line"></span><br><span class="line">text&#x2F;html（HTML文档）</span><br><span class="line"></span><br><span class="line">text&#x2F;javascript（js代码）</span><br><span class="line"></span><br><span class="line">application&#x2F;xhtml+xml（XHTML文档）</span><br><span class="line"></span><br><span class="line">image&#x2F;gif（GIF图像）</span><br><span class="line"></span><br><span class="line">image&#x2F;jpeg（JPEG图像）</span><br><span class="line"></span><br><span class="line">image&#x2F;png（PNG图像）</span><br><span class="line"></span><br><span class="line">video&#x2F;mpeg（MPEG动画）</span><br><span class="line"></span><br><span class="line">application&#x2F;octet-stream（二进制数据）</span><br><span class="line"></span><br><span class="line">application&#x2F;pdf（PDF文档）</span><br><span class="line"></span><br><span class="line">application&#x2F;(编程语言) 该种语言的代码</span><br><span class="line"></span><br><span class="line">application&#x2F;msword（Microsoft Word文件）</span><br><span class="line"></span><br><span class="line">message&#x2F;rfc822（RFC 822形式）</span><br><span class="line"></span><br><span class="line">multipart&#x2F;alternative（HTML邮件的HTML形式和纯文本形式，相同内容使用不同形式表示）</span><br><span class="line"></span><br><span class="line">application&#x2F;x-www-form-urlencoded（POST方法提交的表单）</span><br><span class="line"></span><br><span class="line">multipart&#x2F;form-data（POST提交时伴随文件上传的表单）</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-服务端文件扩展名检测"><a href="#3-服务端文件扩展名检测" class="headerlink" title="3. 服务端文件扩展名检测"></a>3. 服务端文件扩展名检测</h4><p>顾名思义，就是在文件被上传到服务端的时候，对于文件名的扩展名进行检查，如果不合法，则拒绝这次上传</p>
+<p>在这里，还有一点是值得一提的，在检查扩展名是否合法的时候，有两种策略：</p>
+<ul>
+<li><p>黑名单策略，文件扩展名在黑名单中的即为不合法，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$postfix = end(explode(<span class="string">'.'</span>,<span class="string">'$_POST['</span>filename<span class="string">']);</span></span><br><span class="line"><span class="string">if($postfix=='</span>php<span class="string">'||$postfix=='</span>asp<span class="string">'||$postfix=='</span>sh<span class="string">')&#123;</span></span><br><span class="line"><span class="string">  echo "invalid file type";</span></span><br><span class="line"><span class="string">  return;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>绕过方式：</p>
+<ul>
+<li><p>文件名大小绕过</p>
+</li>
+<li><p>名单列表绕过：用黑名单中没有的扩展名进行攻击</p>
+<p>常用于绕过的文件名：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">PHP: php2、php3、php5、phtml、pht</span><br><span class="line"></span><br><span class="line">ASP: aspx、ascx、ashx、cer、asa</span><br><span class="line"></span><br><span class="line">JSP: jspx</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>特殊文件名绕过</p>
+<p>比如发送的 http 包里把文件名改成 test.asp. 或 test.asp_(下划线为空格 )，这种命名方式 </p>
+<p>在 windows 系统里是不被允许的，所以需要在 burp 之类里进行修改，然后绕过验证后，会 被 windows 系统自动去掉后面的点和空格，但要注意 Unix/Linux 系统没有这个特性。</p>
+</li>
+<li><p>0x00截断绕过</p>
+</li>
+<li><p>.htaccess文件绕过</p>
+<p>如果我们可以上传<code>.htaccess</code>文件的话，我们就可以建立一个<code>.htaccess</code>文件将指定的文件名以php的方式来解析：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;FilesMatch <span class="string">"\.(php|pl|py|jsp|asp|htm|shtml|sh|cgi)$"</span>&gt;</span><br><span class="line"></span><br><span class="line">ForceType application/php</span><br><span class="line"></span><br><span class="line">&lt;/FilesMatch&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>解析调用/漏洞绕过</p>
+</li>
+</ul>
+</li>
+<li><p>白名单策略，文件扩展名不在白名单中的均为不合法，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$postfix = end(explode(<span class="string">'.'</span>,<span class="string">'$_POST['</span>filename<span class="string">']);</span></span><br><span class="line"><span class="string">if($postfix=='</span>jpg<span class="string">'||$postfix=='</span>png<span class="string">'||$postfix=='</span>gif<span class="string">')&#123;</span></span><br><span class="line"><span class="string">  //save the file and do something next</span></span><br><span class="line"><span class="string">&#125; else &#123;</span></span><br><span class="line"><span class="string">  echo "invalid file type";</span></span><br><span class="line"><span class="string">  return;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>白名单相对于黑名单来说安全一些，但也不是绝对安全</p>
+</li>
+</ul>
+<h4 id="4-服务端检测绕过（文件内容检测）"><a href="#4-服务端检测绕过（文件内容检测）" class="headerlink" title="4. 服务端检测绕过（文件内容检测）"></a>4. 服务端检测绕过（文件内容检测）</h4><p>如果文件内容检测设置的比较严格，那么文件上传攻击将变得非常困难，当然如果我们突破了这层检测，就代表我们突破了代码层检测的最后一道防线。</p>
+<ul>
+<li><p>文件幻数检测</p>
+<p>图片文件通常有称作幻数的头字节，常见的图片文件的幻数如下：</p>
+<p>JPG</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FF D8 FF E0 00 10 4A 46 49 46</span><br></pre></td></tr></table></figure>
+
+<p>GIF</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">47 49 46 38 29 61   &#x3D;&gt; GIF89a</span><br></pre></td></tr></table></figure>
+
+<p>PNG</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">89 50 4E 47</span><br></pre></td></tr></table></figure>
+
+<p>我们可以在文件幻数后面加上自己的一句话木马来绕过文件幻数检测。</p>
+</li>
+<li><p>文件相关信息检测</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//检查是否图片</span></span><br><span class="line"><span class="keyword">if</span>(function_exists(<span class="string">'getimagesize'</span>)) &#123;</span><br><span class="line">    $tmp_imagesize = @getimagesize($new_name);</span><br><span class="line">    <span class="keyword">list</span>($tmp_width, $tmp_height, $tmp_type) = (<span class="keyword">array</span>)$tmp_imagesize;</span><br><span class="line">    $tmp_size = $tmp_width * $tmp_height;</span><br><span class="line">    <span class="keyword">if</span>($tmp_size &gt; <span class="number">16777216</span> || $tmp_size &lt; <span class="number">4</span> || <span class="keyword">empty</span>($tmp_type) || strpos($tmp_imagesize[<span class="string">'mime'</span>], <span class="string">'flash'</span>) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        @unlink($new_name);</span><br><span class="line">        <span class="keyword">return</span> cplang(<span class="string">'only_allows_upload_file_types'</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<p>  图像文件相关信息检测常用的就是 getimagesize()函数 只需要把文件头部分伪造好就 ok 了，就是在幻数的基础上还加了一些文件信息 有点像下面的结构 </p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GIF89a</span><br><span class="line"> (...some binary data for image...) </span><br><span class="line"> &lt;?php phpinfo(); ?&gt;</span><br><span class="line"> (... skipping the rest of binary data ...)</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x02-中间件解析漏洞"><a href="#0x02-中间件解析漏洞" class="headerlink" title="0x02 中间件解析漏洞"></a>0x02 中间件解析漏洞</h2><p>由于中间件本身的缺陷，再对上传文件进行解析时会出现一些不可预料的错误从而导致被利用进行上传绕过。</p>
+<ul>
+<li><p>IIS6.0解析漏洞</p>
+<p>第一种，当建立<em>.asp、</em>.asa格式的文件夹时，其目录下任意文件都会<code>iis</code>当作<code>asp</code>文件来解析。</p>
+<p>例如:创建<code>xxx.asp</code>目录那么在<code>xxx.asp</code>目录下如果存在<code>1.txt</code>文件会被当做<code>1.asp</code>文件来执行。</p>
+<p>第二种,在IIS6.0下分号后的不被解析。</p>
+<p>例如:<code>xxx.asp;.jpg</code>会被服务器看作为<code>xxx.asp</code>文件</p>
+</li>
+<li><p>IIS7.0/7.5畸形解析漏洞</p>
+<p>IIS7.0/7.5中：任意文件名/任意文件名.php就会被解析为php</p>
+</li>
+<li><p>Apache解析漏洞</p>
+<p>在Apache 1.x和Apache 2.x中存在解析漏洞。</p>
+<p>Apache在解析文件时有一个原则，当碰到不认识的扩展名时，将会从后向前解析，直到碰到认识的扩展名为止，如果都不认识，则会暴露其源代码。</p>
+<p>如：1.php.rar.sa.xs就会被解析为php，可以据此来绕过文件名限制</p>
+</li>
+<li><p>Nginx&lt;8.03畸形解析漏洞</p>
+<p>在默认<code>Fast-CGI</code>开启的情况下上传一个<code>xxx.jpg</code>，内容为<code>&lt;?php eval($POST[‘cmd’])?&gt;</code>的文件然后访问<code>xxx.jpg/.php</code>在该目录下就会生成一句话木马文件<code>xxx.php</code>。</p>
+</li>
+<li><p>PHP CGI解析漏洞</p>
+<p>当php的配置文件中的选项cgi.fix_pathinfo= 1开启时，当访问<code>http://www.example.com/xxx.txt/xxx.php</code>时，若xxx.php不存在，则PHP会递归向前解析，将xxx.txt当作php脚本来解析</p>
+</li>
+</ul>
+<h2 id="0x03-利用系统特性"><a href="#0x03-利用系统特性" class="headerlink" title="0x03 利用系统特性"></a>0x03 利用系统特性</h2><h4 id="1-NTFS数据流与文件上传"><a href="#1-NTFS数据流与文件上传" class="headerlink" title="1. NTFS数据流与文件上传"></a>1. NTFS数据流与文件上传</h4><p>NTFS是微软Windows NT 内核系列操作系统支持的，为了解决网络和磁盘配额、文件加密等安全特性所设计的磁盘格式，比FAT文件系统更加稳定，也更加安全。</p>
+<p>NTFS-ADS，又称为NTFS交换数据流，是NTFS磁盘格式的一个特性。在NTFS文件系统下，每个文件都存在多个数据流，也就是说，除了主文件流之外，还可以有许多非主文件流寄宿在主文件流中。</p>
+<p>在文件上传中会用到<code>:</code> 来绕过文件限制，如<code>bypass.php:jpg</code> </p>
+<p>流类型以$开头，默认流类型为data，如上payload的完整形式其实是：</p>
+<p><code>bypass.php:jpg::$DATA</code></p>
+<p>这个格式其实是创建一个与宿主文件关联的数据流文件，之所以会生成<code>bypass.php</code>，是因为它没有找到的自己的宿主文件，所以才创建了一个。而<code>bypass.php::$DATA</code>可以写入文件。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The default data stream has no name. That is, the fully qualified name for the def ault stream for a file called "sample.txt" is "sample.txt::$DATA" since "sample.t xt" is the name of the file and "$DATA" is the stream type.</span><br></pre></td></tr></table></figure>
+
+<p>即：<code>sample.txt &lt;--&gt; sample.txt::$DATA</code></p>
+<h4 id="2-windows通配符的妙用"><a href="#2-windows通配符的妙用" class="headerlink" title="2. windows通配符的妙用"></a>2. windows通配符的妙用</h4><ul>
+<li>windows通配符</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="center">符号</th>
+<th align="center">意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">&gt;</td>
+<td align="center">等价于通配符 “?” ,匹配一个0或1个字符</td>
+</tr>
+<tr>
+<td align="center">&lt;</td>
+<td align="center">等价于通配符 “*” ,匹配任意个字符</td>
+</tr>
+<tr>
+<td align="center">“</td>
+<td align="center">等价于通配符 “.” ,匹配除换行符(\n, \r)之外的任意单个字符</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p>通配符+冒号畸形上传</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">//U-Mail demo ... if(isset($_POST['submit']))&#123;</span></span><br><span class="line">$filename = $_POST[<span class="string">'filename'</span>]; </span><br><span class="line">$filename = preg_replace(<span class="string">"/[^\w]/i"</span>, <span class="string">""</span>, $filename);</span><br><span class="line">$upfile = $_FILES[<span class="string">'file'</span>][<span class="string">'name'</span>]; </span><br><span class="line">$upfile = str_replace(<span class="string">';'</span>,<span class="string">""</span>,$upfile); </span><br><span class="line">$upfile = preg_replace(<span class="string">"/[^(\w|\:|\$|\.|\&lt;|\&gt;)]/i"</span>, <span class="string">""</span>, $upfile);</span><br><span class="line">$tempfile = $_FILES[<span class="string">'file'</span>][<span class="string">'tmp_name'</span>];</span><br><span class="line">$ext = trim(get_extension($upfile)); </span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">return</span> strtolower(substr($file, strrpos($file, <span class="string">'.'</span>)+<span class="number">1</span>));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span>(in_array($ext,<span class="keyword">array</span>(<span class="string">'php'</span>,<span class="string">'php3'</span>,<span class="string">'php5'</span>)))</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">die</span>(<span class="string">'Warning ! File type error..'</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span>($ext == <span class="string">'asp'</span> <span class="keyword">or</span> $ext == <span class="string">'asa'</span> <span class="keyword">or</span> $ext == <span class="string">'cer'</span> <span class="keyword">or</span> $ext == <span class="string">'cdx'</span> <span class="keyword">or</span> $ext ==</span><br><span class="line">  <span class="string">'aspx'</span> <span class="keyword">or</span> $ext == <span class="string">'htaccess'</span>)</span><br><span class="line">          $ext = <span class="string">'file'</span>;</span><br><span class="line">      $savefile = <span class="string">'upload/'</span>.$filename.<span class="string">"."</span>.$ext;</span><br><span class="line">      <span class="keyword">if</span>(move_uploaded_file($tempfile,$savefile))</span><br><span class="line">      &#123;</span><br><span class="line">          <span class="keyword">die</span>(<span class="string">'Success upload..path :'</span>.$savefile);</span><br><span class="line">      &#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">die</span>(<span class="string">'Upload failed..'</span>);</span><br><span class="line">      &#125;</span><br><span class="line">&#125; <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">form</span> <span class="attr">method</span>=<span class="string">"post"</span> <span class="attr">action</span>=<span class="string">"upfile.php"</span> <span class="attr">enctype</span>=<span class="string">"multipart/form-data"</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> 	<span class="attr">type</span>=<span class="string">"file"</span> <span class="attr">name</span>=<span class="string">"file"</span> <span class="attr">value</span>=<span class="string">""</span>/&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"hidden"</span> <span class="attr">name</span>=<span class="string">"filename"</span> <span class="attr">value</span>=<span class="string">"file"</span>/&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> <span class="attr">name</span>=<span class="string">"submit"</span> <span class="attr">value</span>=<span class="string">"upload"</span>/&gt;</span></span><br><span class="line">   		<span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上述代码用普通的办法是无法成功上传php文件的，但是当Windows通配符和NTFS ADS的特相结合时就会产生安全问题。</p>
+<p>绕过方法：</p>
+<ul>
+<li>用<code>bypass.php:jpg</code>来生成一个空文件</li>
+<li>利用<code>bypass.&gt;&gt;&gt;</code>或<code>bypass.&lt;</code>来进行覆盖，写入文件</li>
+</ul>
+</li>
+<li><p>利用通配符获取上传目录</p>
+<p>如果我们上传文件后，无法知道上传文件所在的目录名。在Windows环境下，我们可以利用通配符来猜解出目录名称。</p>
+<p>这里以HITB 2018的一道CTF题目为例，示例代码如下:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line"></span><br><span class="line">$filename = $_GET[<span class="string">'filename'</span>];</span><br><span class="line"></span><br><span class="line">$file = <span class="string">"./abcdefg1234567aaabb/"</span> . $filename;</span><br><span class="line"></span><br><span class="line">var_dump(getimagesize($file));</span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>网站存在上传功能，我们将一个php木马上传到了某目录下(abcdefg1234567aaabb)，但是不知道其目录名。</p>
+<p>幸运的是，我们可以向1.php的filename参数传入该目录下的一个图片名，程序会返回该图片的尺寸信息。</p>
+<p>执行如下访问</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="comment">//192.168.219.197/1.php?filename=../a&lt;/01.png  返回正常</span></span><br><span class="line"></span><br><span class="line">http:<span class="comment">//192.168.219.197/1.php?filename=../aa&lt;/01.png 返回错误</span></span><br><span class="line"></span><br><span class="line">http:<span class="comment">//192.168.219.197/1.php?filename=../ab&lt;/01.png 返回正常</span></span><br><span class="line"></span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">http:<span class="comment">//192.168.219.197/1.php?filename=../abcdefg&lt;/01.png 返回正常</span></span><br><span class="line"></span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">http:<span class="comment">//192.168.219.197/1.php?filename=../abcdefg1234&lt;/01.png 返回正常</span></span><br><span class="line"></span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">http:<span class="comment">//192.168.219.197/1.php?filename=../abcdefg1234567aaabb&lt;/01.png  返回正常</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来的26 + 10 次尝试中，均返回错误，证明我们已经将目录名猜解完毕，得到目录名:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abcdefg1234567aaabb</span><br></pre></td></tr></table></figure>
+
+<p>假设我们连php木马名也不知道呢?猜解文件名也是同一个道理。</p>
+</li>
+</ul>
+<h2 id="0x04-参考"><a href="#0x04-参考" class="headerlink" title="0x04 参考"></a>0x04 参考</h2><ul>
+<li><p><a href="http://www.owasp.org.cn/OWASP_Training/Upload_Attack_Framework.pdf" target="_blank" rel="noopener">Upload Attack Framework</a></p>
+</li>
+<li><p><a href="https://cloud.tencent.com/developer/article/1078284" target="_blank" rel="noopener">文件上传漏洞的一些总结</a></p>
+</li>
+<li><p><a href="https://xz.aliyun.com/t/2318" target="_blank" rel="noopener">Windows下的”你画我猜” – 告别效率低下的目录扫描方法</a></p>
+</li>
+<li><p><a href="http://www.freebuf.com/vuls/128846.html" target="_blank" rel="noopener">闲话文件上传漏洞</a></p>
+</li>
+<li><p><a href="https://xz.aliyun.com/t/2064" target="_blank" rel="noopener">解决DEDECMS历史难题–找后台目录</a></p>
+</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x00-前言"><span class="toc-number">1.</span> <span class="toc-text">0x00 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-文件上传检测流程"><span class="toc-number">2.</span> <span class="toc-text">0x01 文件上传检测流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-客户端-javascript-检测绕过"><span class="toc-number">2.0.1.</span> <span class="toc-text">1. 客户端 javascript 检测绕过</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-服务端MIME检测绕过"><span class="toc-number">2.0.2.</span> <span class="toc-text">2. 服务端MIME检测绕过</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-服务端文件扩展名检测"><span class="toc-number">2.0.3.</span> <span class="toc-text">3. 服务端文件扩展名检测</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-服务端检测绕过（文件内容检测）"><span class="toc-number">2.0.4.</span> <span class="toc-text">4. 服务端检测绕过（文件内容检测）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-中间件解析漏洞"><span class="toc-number">3.</span> <span class="toc-text">0x02 中间件解析漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-利用系统特性"><span class="toc-number">4.</span> <span class="toc-text">0x03 利用系统特性</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-NTFS数据流与文件上传"><span class="toc-number">4.0.1.</span> <span class="toc-text">1. NTFS数据流与文件上传</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-windows通配符的妙用"><span class="toc-number">4.0.2.</span> <span class="toc-text">2. windows通配符的妙用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考"><span class="toc-number">5.</span> <span class="toc-text">0x04 参考</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&text=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&is_video=false&description=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=文件上传漏洞学习总结&body=Check out this article: https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/10/16/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/&name=文件上传漏洞学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 Quincy
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'quincyblog-top';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

