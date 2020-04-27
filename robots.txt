@@ -1,0 +1,11 @@
+User-agent: * Allow: /
+Allow: /archives/
+
+Disallow: /categories/
+Disallow: /tags/
+Disallow: /about/
+Disallow: /css/
+Disallow: /images/
+Disallow: /js/
+
+Sitemap: https://blog.quincy.codes/sitemap.xml
