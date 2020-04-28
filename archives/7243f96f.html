@@ -9,12 +9,12 @@
     <meta name="description" content="前言前两天做了两道suctf的web题目，在此记录一下。 anonymous 题目源码 12345678910111213 &lt;?php$MY &#x3D; create_function(&quot;&quot;,&quot;die(&#96;cat flag.php&#96;);&quot;);$hash &#x3D; bin2hex(openssl_random_pseudo_bytes(32));eval(&quot;function SUCTF_$hash()&amp;#12">
 <meta property="og:type" content="article">
 <meta property="og:title" content="suctf_writeup">
-<meta property="og:url" content="https://quincy.codes/archives/suctf-writeup/index.html">
+<meta property="og:url" content="https://quincy.codes/archives/7243f96f.html">
 <meta property="og:site_name" content="Quincy&#39;s blog">
 <meta property="og:description" content="前言前两天做了两道suctf的web题目，在此记录一下。 anonymous 题目源码 12345678910111213 &lt;?php$MY &#x3D; create_function(&quot;&quot;,&quot;die(&#96;cat flag.php&#96;);&quot;);$hash &#x3D; bin2hex(openssl_random_pseudo_bytes(32));eval(&quot;function SUCTF_$hash()&amp;#12">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-05-31T12:04:43.000Z">
-<meta property="article:modified_time" content="2020-03-17T03:15:54.752Z">
+<meta property="article:modified_time" content="2020-04-28T08:44:05.670Z">
 <meta property="article:author" content="Quincy">
 <meta property="article:tag" content="CTF">
 <meta name="twitter:card" content="summary">
@@ -92,10 +92,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" href="/archives/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" href="/archives/47fca698.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" href="/archives/%E5%93%88%E5%B8%8C%E9%95%BF%E5%BA%A6%E6%89%A9%E5%B1%95%E6%94%BB%E5%87%BB%E7%9A%84%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" href="/archives/77091e1b.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -108,16 +108,16 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/suctf-writeup/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/suctf-writeup/&text=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/suctf-writeup/&is_video=false&description=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=suctf_writeup&body=Check out this article: https://quincy.codes/archives/suctf-writeup/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/suctf-writeup/&name=suctf_writeup&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/7243f96f.html" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/7243f96f.html&text=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/7243f96f.html&is_video=false&description=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=suctf_writeup&body=Check out this article: https://quincy.codes/archives/7243f96f.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/7243f96f.html&name=suctf_writeup&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -241,16 +241,16 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/suctf-writeup/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/suctf-writeup/&text=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/suctf-writeup/&is_video=false&description=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=suctf_writeup&body=Check out this article: https://quincy.codes/archives/suctf-writeup/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/suctf-writeup/&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/suctf-writeup/&name=suctf_writeup&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/7243f96f.html" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/7243f96f.html&text=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/7243f96f.html&is_video=false&description=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=suctf_writeup&body=Check out this article: https://quincy.codes/archives/7243f96f.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/7243f96f.html&title=suctf_writeup" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/7243f96f.html&name=suctf_writeup&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

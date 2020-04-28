@@ -9,12 +9,12 @@
     <meta name="description" content="This post is just to note something when I was in learning IO FILE. I will introduce the FILE Structure in GNU C Library, related functions and some CTF challenges. IntroductionFILE StructureWhen the">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IO-FILE Learning Note">
-<meta property="og:url" content="https://quincy.codes/archives/IO-FILE-Learning-Note/index.html">
+<meta property="og:url" content="https://quincy.codes/archives/8c17e285.html">
 <meta property="og:site_name" content="Quincy&#39;s blog">
 <meta property="og:description" content="This post is just to note something when I was in learning IO FILE. I will introduce the FILE Structure in GNU C Library, related functions and some CTF challenges. IntroductionFILE StructureWhen the">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-02-19T07:03:52.000Z">
-<meta property="article:modified_time" content="2020-03-17T03:15:54.751Z">
+<meta property="article:modified_time" content="2020-04-28T08:44:05.666Z">
 <meta property="article:author" content="Quincy">
 <meta property="article:tag" content="Note">
 <meta property="article:tag" content="IO_FILE">
@@ -93,10 +93,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" href="/archives/DASCTF-%E5%9B%9B%E6%9C%88%E6%98%A5%E5%AD%A3%E6%88%98-writeup-pwn/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" href="/archives/d586cb7b.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" href="/archives/Tcache_Tear/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" href="/archives/385fadd6.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -109,16 +109,16 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/IO-FILE-Learning-Note/" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&text=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&is_video=false&description=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=IO-FILE Learning Note&body=Check out this article: https://quincy.codes/archives/IO-FILE-Learning-Note/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&name=IO-FILE Learning Note&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/8c17e285.html" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/8c17e285.html&text=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/8c17e285.html&is_video=false&description=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO-FILE Learning Note&body=Check out this article: https://quincy.codes/archives/8c17e285.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/8c17e285.html&name=IO-FILE Learning Note&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -355,16 +355,16 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/IO-FILE-Learning-Note/" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&text=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&is_video=false&description=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=IO-FILE Learning Note&body=Check out this article: https://quincy.codes/archives/IO-FILE-Learning-Note/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/IO-FILE-Learning-Note/&name=IO-FILE Learning Note&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/8c17e285.html" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/8c17e285.html&text=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/8c17e285.html&is_video=false&description=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO-FILE Learning Note&body=Check out this article: https://quincy.codes/archives/8c17e285.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/8c17e285.html&title=IO-FILE Learning Note" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/8c17e285.html&name=IO-FILE Learning Note&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
