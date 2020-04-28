@@ -4,9 +4,9 @@ Allow: /archives/
 Allow: /categories/
 Allow: /tags/
 
+Disallow: /about
 Disallow: /js/
 Disallow: /css/
 Disallow: /fonts/
-Disallow: /about/
 
 Sitemap: https://blog.quincy.codes/sitemap.xml
