@@ -55,17 +55,6 @@
     <!-- rss -->
     
     
-    <!-- Google Analytics -->
-    
-      <script type="text/javascript">
-          (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-          ga('create', 'UA-164678235-1', 'auto');
-          ga('send', 'pageview');
-      </script>
-    
 <meta name="generator" content="Hexo 4.2.0"></head>
 
 <body class="max-width mx-auto px3 ltr">
@@ -80,13 +69,9 @@
          
           <li><a href="/">Home</a></li>
          
-          <li><a href="/about/">About</a></li>
-         
           <li><a href="/archives/">Writing</a></li>
          
           <li><a href="/categories/">Categories</a></li>
-         
-          <li><a href="/links/">Links</a></li>
          
           <li><a href="/search/">Search</a></li>
         
@@ -122,11 +107,14 @@
   <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/385fadd6.html&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/385fadd6.html&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/385fadd6.html&name=tcache_tear&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/385fadd6.html&t=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-Tcache"><span class="toc-number">2.</span> <span class="toc-text">0x02 Tcache</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总体框架"><span class="toc-number">2.1.</span> <span class="toc-text">总体框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据结构"><span class="toc-number">2.2.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关函数"><span class="toc-number">2.3.</span> <span class="toc-text">相关函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆管理的细节"><span class="toc-number">2.4.</span> <span class="toc-text">堆管理的细节</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#内存分配"><span class="toc-number">2.4.1.</span> <span class="toc-text">内存分配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内存释放"><span class="toc-number">2.4.2.</span> <span class="toc-text">内存释放</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Tcache-Tear"><span class="toc-number">3.</span> <span class="toc-text">0x03 Tcache_Tear</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#程序功能描述"><span class="toc-number">3.1.</span> <span class="toc-text">程序功能描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#漏洞分析及利用"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞分析及利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#所遇问题"><span class="toc-number">3.3.</span> <span class="toc-text">所遇问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exp-py"><span class="toc-number">3.4.</span> <span class="toc-text">exp.py</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考链接"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考链接</span></a></li></ol>
+      
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-Tcache"><span class="toc-number">2.</span> <span class="toc-text">0x02 Tcache</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#总体框架"><span class="toc-number">2.1.</span> <span class="toc-text">总体框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据结构"><span class="toc-number">2.2.</span> <span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关函数"><span class="toc-number">2.3.</span> <span class="toc-text">相关函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#堆管理的细节"><span class="toc-number">2.4.</span> <span class="toc-text">堆管理的细节</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#内存分配"><span class="toc-number">2.4.1.</span> <span class="toc-text">内存分配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#内存释放"><span class="toc-number">2.4.2.</span> <span class="toc-text">内存释放</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-Tcache-Tear"><span class="toc-number">3.</span> <span class="toc-text">0x03 Tcache_Tear</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#程序功能描述"><span class="toc-number">3.1.</span> <span class="toc-text">程序功能描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#漏洞分析及利用"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞分析及利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#所遇问题"><span class="toc-number">3.3.</span> <span class="toc-text">所遇问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#exp-py"><span class="toc-number">3.4.</span> <span class="toc-text">exp.py</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考链接"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考链接</span></a></li></ol>
+      
     </div>
   </span>
 </div>
@@ -301,13 +289,9 @@
          
           <li><a href="/">Home</a></li>
          
-          <li><a href="/about/">About</a></li>
-         
           <li><a href="/archives/">Writing</a></li>
          
           <li><a href="/categories/">Categories</a></li>
-         
-          <li><a href="/links/">Links</a></li>
          
           <li><a href="/search/">Search</a></li>
         
@@ -330,6 +314,7 @@
   <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/385fadd6.html&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/385fadd6.html&title=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/385fadd6.html&name=tcache_tear&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/385fadd6.html&t=tcache_tear" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -347,7 +332,11 @@
         
         <footer id="footer">
   <div class="footer-left">
-    Copyright &copy; 2020 Quincy
+    Copyright &copy;
+    
+    
+    2017-2020
+    Quincy
   </div>
   <div class="footer-right">
     <nav>
@@ -355,13 +344,9 @@
          
           <li><a href="/">Home</a></li>
          
-          <li><a href="/about/">About</a></li>
-         
           <li><a href="/archives/">Writing</a></li>
          
           <li><a href="/categories/">Categories</a></li>
-         
-          <li><a href="/links/">Links</a></li>
          
           <li><a href="/search/">Search</a></li>
         
@@ -398,10 +383,10 @@
     btn += '<i class="far fa-clone"></i>';
     btn += '</span>'; 
     // mount it!
-    $(".highlight .code pre").before(btn);
+    $(".highlight table").before(btn);
     var clip = new ClipboardJS('.btn-copy', {
-      target: function(trigger) {
-        return trigger.nextElementSibling;
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
       }
     });
     clip.on('success', function(e) {
@@ -415,6 +400,17 @@
 <script src="/js/main.js"></script>
 
 <!-- search -->
+
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-164678235-1', 'auto');
+        ga('send', 'pageview');
+    </script>
 
 <!-- Baidu Analytics -->
 

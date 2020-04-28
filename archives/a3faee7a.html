@@ -51,17 +51,6 @@
     <!-- rss -->
     
     
-    <!-- Google Analytics -->
-    
-      <script type="text/javascript">
-          (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
-          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-          ga('create', 'UA-164678235-1', 'auto');
-          ga('send', 'pageview');
-      </script>
-    
 <meta name="generator" content="Hexo 4.2.0"></head>
 
 <body class="max-width mx-auto px3 ltr">
@@ -76,13 +65,9 @@
          
           <li><a href="/">Home</a></li>
          
-          <li><a href="/about/">About</a></li>
-         
           <li><a href="/archives/">Writing</a></li>
          
           <li><a href="/categories/">Categories</a></li>
-         
-          <li><a href="/links/">Links</a></li>
          
           <li><a href="/search/">Search</a></li>
         
@@ -116,11 +101,14 @@
   <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/a3faee7a.html&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/a3faee7a.html&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/a3faee7a.html&name=文件包含总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/a3faee7a.html&t=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-简介"><span class="toc-number">2.</span> <span class="toc-text">0x02 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-常见的漏洞利用方法"><span class="toc-number">3.</span> <span class="toc-text">0x03 常见的漏洞利用方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-利用PHP伪协议"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 利用PHP伪协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-包含日志文件"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.包含日志文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-包含session文件"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.包含session文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-包含-tmp文件"><span class="toc-number">3.0.4.</span> <span class="toc-text">4.包含&#x2F;tmp文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考</span></a></li></ol>
+      
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-前言"><span class="toc-number">1.</span> <span class="toc-text">0x01 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-简介"><span class="toc-number">2.</span> <span class="toc-text">0x02 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-常见的漏洞利用方法"><span class="toc-number">3.</span> <span class="toc-text">0x03 常见的漏洞利用方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-利用PHP伪协议"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 利用PHP伪协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-包含日志文件"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.包含日志文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-包含session文件"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.包含session文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-包含-tmp文件"><span class="toc-number">3.0.4.</span> <span class="toc-text">4.包含&#x2F;tmp文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x04-参考"><span class="toc-number">4.</span> <span class="toc-text">0x04 参考</span></a></li></ol>
+      
     </div>
   </span>
 </div>
@@ -295,13 +283,9 @@
          
           <li><a href="/">Home</a></li>
          
-          <li><a href="/about/">About</a></li>
-         
           <li><a href="/archives/">Writing</a></li>
          
           <li><a href="/categories/">Categories</a></li>
-         
-          <li><a href="/links/">Links</a></li>
          
           <li><a href="/search/">Search</a></li>
         
@@ -324,6 +308,7 @@
   <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/a3faee7a.html&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/a3faee7a.html&title=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
   <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/a3faee7a.html&name=文件包含总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/a3faee7a.html&t=文件包含总结" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -341,7 +326,11 @@
         
         <footer id="footer">
   <div class="footer-left">
-    Copyright &copy; 2020 Quincy
+    Copyright &copy;
+    
+    
+    2017-2020
+    Quincy
   </div>
   <div class="footer-right">
     <nav>
@@ -349,13 +338,9 @@
          
           <li><a href="/">Home</a></li>
          
-          <li><a href="/about/">About</a></li>
-         
           <li><a href="/archives/">Writing</a></li>
          
           <li><a href="/categories/">Categories</a></li>
-         
-          <li><a href="/links/">Links</a></li>
          
           <li><a href="/search/">Search</a></li>
         
@@ -392,10 +377,10 @@
     btn += '<i class="far fa-clone"></i>';
     btn += '</span>'; 
     // mount it!
-    $(".highlight .code pre").before(btn);
+    $(".highlight table").before(btn);
     var clip = new ClipboardJS('.btn-copy', {
-      target: function(trigger) {
-        return trigger.nextElementSibling;
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
       }
     });
     clip.on('success', function(e) {
@@ -409,6 +394,17 @@
 <script src="/js/main.js"></script>
 
 <!-- search -->
+
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-164678235-1', 'auto');
+        ga('send', 'pageview');
+    </script>
 
 <!-- Baidu Analytics -->
 
