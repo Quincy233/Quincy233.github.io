@@ -9,4 +9,4 @@ Disallow: /js/
 Disallow: /css/
 Disallow: /fonts/
 
-Sitemap: https://quincy.codes/sitemap.xml
+Sitemap: https://littlesky.site/sitemap.xml
