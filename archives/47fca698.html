@@ -9,14 +9,16 @@
     <meta name="description" content="0x00 前言文件上传漏洞是渗透测试中一个关键的突破口，通过文件上传漏洞我们可以上传webshell等一系列操作。下面是有关文件上传漏洞的学习总结。 0x01 文件上传检测流程通常一个文件以HTTP协议进行上传时，将以POST请求发送至Web服务器，Web服务器接收到请求并同意后，用户与Web服务器将建立连接，并传输数据。一般文件上传过程中将会经过如下几个检测步骤：  客户端 javascript">
 <meta property="og:type" content="article">
 <meta property="og:title" content="文件上传漏洞学习总结">
-<meta property="og:url" content="https://quincy.codes/archives/47fca698.html">
+<meta property="og:url" content="https://littlesky.site/archives/47fca698.html">
 <meta property="og:site_name" content="Quincy&#39;s blog">
 <meta property="og:description" content="0x00 前言文件上传漏洞是渗透测试中一个关键的突破口，通过文件上传漏洞我们可以上传webshell等一系列操作。下面是有关文件上传漏洞的学习总结。 0x01 文件上传检测流程通常一个文件以HTTP协议进行上传时，将以POST请求发送至Web服务器，Web服务器接收到请求并同意后，用户与Web服务器将建立连接，并传输数据。一般文件上传过程中将会经过如下几个检测步骤：  客户端 javascript">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-10-16T13:18:03.000Z">
 <meta property="article:modified_time" content="2020-04-28T08:44:05.673Z">
 <meta property="article:author" content="Quincy">
-<meta property="article:tag" content="web security">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content=" software security">
+<meta property="article:tag" content=" pwn">
 <meta name="twitter:card" content="summary">
     
     
@@ -93,17 +95,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/47fca698.html" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/47fca698.html&text=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/47fca698.html&is_video=false&description=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=文件上传漏洞学习总结&body=Check out this article: https://quincy.codes/archives/47fca698.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/47fca698.html&name=文件上传漏洞学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/47fca698.html&t=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://littlesky.site/archives/47fca698.html" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://littlesky.site/archives/47fca698.html&text=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://littlesky.site/archives/47fca698.html&is_video=false&description=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=文件上传漏洞学习总结&body=Check out this article: https://littlesky.site/archives/47fca698.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://littlesky.site/archives/47fca698.html&name=文件上传漏洞学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://littlesky.site/archives/47fca698.html&t=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -367,17 +369,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/47fca698.html" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/47fca698.html&text=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/47fca698.html&is_video=false&description=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=文件上传漏洞学习总结&body=Check out this article: https://quincy.codes/archives/47fca698.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/47fca698.html&name=文件上传漏洞学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/47fca698.html&t=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://littlesky.site/archives/47fca698.html" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://littlesky.site/archives/47fca698.html&text=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://littlesky.site/archives/47fca698.html&is_video=false&description=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=文件上传漏洞学习总结&body=Check out this article: https://littlesky.site/archives/47fca698.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://littlesky.site/archives/47fca698.html&title=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://littlesky.site/archives/47fca698.html&name=文件上传漏洞学习总结&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://littlesky.site/archives/47fca698.html&t=文件上传漏洞学习总结" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

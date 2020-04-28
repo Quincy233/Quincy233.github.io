@@ -9,7 +9,7 @@
     <meta name="description" content="0x01 前言在做ISCC2018 的时候遇到了一题利用的哈希长度扩展攻击的web题目，于是学习了解了一下相关知识，并在此记录一下。 题目源码： 1234567891011121314151617181920&lt;?phpinclude &quot;secret.php&quot;;@$username&#x3D;(string)$_POST[&#39;username&#39;];function enc($text)&amp;#123;">
 <meta property="og:type" content="article">
 <meta property="og:title" content="哈希长度扩展攻击的学习">
-<meta property="og:url" content="https://quincy.codes/archives/77091e1b.html">
+<meta property="og:url" content="https://littlesky.site/archives/77091e1b.html">
 <meta property="og:site_name" content="Quincy&#39;s blog">
 <meta property="og:description" content="0x01 前言在做ISCC2018 的时候遇到了一题利用的哈希长度扩展攻击的web题目，于是学习了解了一下相关知识，并在此记录一下。 题目源码： 1234567891011121314151617181920&lt;?phpinclude &quot;secret.php&quot;;@$username&#x3D;(string)$_POST[&#39;username&#39;];function enc($text)&amp;#123;">
 <meta property="og:locale" content="en_US">
@@ -20,7 +20,9 @@
 <meta property="article:published_time" content="2018-05-08T03:44:35.000Z">
 <meta property="article:modified_time" content="2020-04-28T08:44:05.672Z">
 <meta property="article:author" content="Quincy">
-<meta property="article:tag" content="web security">
+<meta property="article:tag" content="ctf">
+<meta property="article:tag" content=" software security">
+<meta property="article:tag" content=" pwn">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://ony7wielg.bkt.clouddn.com/20170511149444648852381.png">
     
@@ -98,17 +100,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/77091e1b.html" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/77091e1b.html&text=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/77091e1b.html&is_video=false&description=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=哈希长度扩展攻击的学习&body=Check out this article: https://quincy.codes/archives/77091e1b.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/77091e1b.html&name=哈希长度扩展攻击的学习&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/77091e1b.html&t=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://littlesky.site/archives/77091e1b.html" target="_blank" rel="noopener"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://littlesky.site/archives/77091e1b.html&text=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://littlesky.site/archives/77091e1b.html&is_video=false&description=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=哈希长度扩展攻击的学习&body=Check out this article: https://littlesky.site/archives/77091e1b.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://littlesky.site/archives/77091e1b.html&name=哈希长度扩展攻击的学习&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://littlesky.site/archives/77091e1b.html&t=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -279,17 +281,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://quincy.codes/archives/77091e1b.html" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://quincy.codes/archives/77091e1b.html&text=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://quincy.codes/archives/77091e1b.html&is_video=false&description=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=哈希长度扩展攻击的学习&body=Check out this article: https://quincy.codes/archives/77091e1b.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://quincy.codes/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://quincy.codes/archives/77091e1b.html&name=哈希长度扩展攻击的学习&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://quincy.codes/archives/77091e1b.html&t=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://littlesky.site/archives/77091e1b.html" target="_blank" rel="noopener"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://littlesky.site/archives/77091e1b.html&text=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://littlesky.site/archives/77091e1b.html&is_video=false&description=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=哈希长度扩展攻击的学习&body=Check out this article: https://littlesky.site/archives/77091e1b.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://littlesky.site/archives/77091e1b.html&title=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://littlesky.site/archives/77091e1b.html&name=哈希长度扩展攻击的学习&description=" target="_blank" rel="noopener"><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://news.ycombinator.com/submitlink?u=https://littlesky.site/archives/77091e1b.html&t=哈希长度扩展攻击的学习" target="_blank" rel="noopener"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
